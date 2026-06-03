@@ -1369,7 +1369,8 @@ function landOn(i){
   if(t==='forward'){const p=players[curIdx];p.pos=Math.min(p.pos+3,N-1);paintTokens();renderPlayers();
     showCard('forward',fill("⚡ Free auto, green lights all the way — {p} zooms ahead 3 tiles! Victory sip."),'Moved to tile '+p.pos);return;}
   if(t==='back'){const p=players[curIdx];p.pos=Math.max(p.pos-3,0);paintTokens();renderPlayers();
-    showCard('back',fill("🚧 Stuck at Silk Board — {p} crawls back 3 tiles. Drink away the rage (2 sips)."),'Moved to tile '+p.pos);return;}
+    const jam=pick(['Silk Board','Sony signal in Koramangala','Whitefield (basically Silk Board)','the Outer Ring Road']);
+    showCard('back',fill("🚧 Stuck at "+jam+" — {p} crawls back 3 tiles. Drink away the rage (2 sips)."),'Moved to tile '+p.pos);return;}
   if(t==='swap'){const o=randomOther();const p=players[curIdx];const tmp=p.pos;p.pos=o.pos;o.pos=tmp;paintTokens();renderPlayers();
     showCard('swap',`🔄 ${p.name} swaps places with ${o.name}! Both drink to the chaos.`,'');return;}
   if(t==='skip'){players[curIdx].skipNext=true;
