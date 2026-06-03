@@ -1,0 +1,1467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="theme-color" content="#06060f" />
+<title>NAMMA NIGHTS — Bangalore Drinking Board</title>
+<style>
+  :root{
+    --bg:#06060f; --ink:#eef0ff; --muted:#8a8fb5;
+    --dare:#ff2e63; --truth:#00e5ff; --blr:#ffd23f; --group:#9d6bff;
+    --rule:#39ff14; --drink:#ff8c1a; --special:#ff32e6; --crazy:#ff0040;
+    --start:#00ffa3; --finish:#ffe66d;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+  html,body{margin:0;min-height:100%;overscroll-behavior:none}
+  button,.tile,.tok,.chip,.sip,.charbtn,.dot{touch-action:manipulation;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+  body{
+    padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    background:
+      radial-gradient(1100px 700px at 75% -10%,#23103f 0%,transparent 55%),
+      radial-gradient(900px 700px at -10% 110%,#06243a 0%,transparent 55%),
+      radial-gradient(700px 500px at 110% 80%,#3a0a2a 0%,transparent 55%),
+      var(--bg);
+    color:var(--ink);
+    font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
+    overflow-x:hidden;
+  }
+  h1,h2,h3{margin:0;font-weight:800;letter-spacing:.5px}
+  button{font-family:inherit;cursor:pointer;border:none;border-radius:12px;font-weight:700}
+  .hidden{display:none!important}
+
+  /* animated neon title */
+  .logo{font-size:38px;text-align:center;font-weight:900;letter-spacing:1px;line-height:1.02;
+    background:linear-gradient(90deg,#ff2e63,#ff32e6,#00e5ff,#39ff14,#ffd23f,#ff2e63);
+    background-size:300% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;
+    animation:flow 8s linear infinite;filter:drop-shadow(0 0 14px #ff2e6355)}
+  .logo small{display:block;-webkit-text-fill-color:var(--truth);color:var(--truth);
+    font-size:13px;letter-spacing:5px;margin-top:8px;filter:drop-shadow(0 0 8px #00e5ff)}
+  @keyframes flow{0%{background-position:0% 50%}100%{background-position:300% 50%}}
+
+  /* ---------- SETUP ---------- */
+  #setup{max-width:540px;margin:0 auto;padding:26px 18px 60px}
+  .card-box{background:linear-gradient(180deg,#14152455,#0b0b16);border:1px solid #26285a;
+    border-radius:20px;padding:18px;margin-top:22px;box-shadow:0 0 50px #00000099}
+  .lbl{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:2px;margin:6px 0 10px;
+    display:flex;justify-content:space-between;align-items:center}
+  .countbtns{display:flex;gap:6px}
+  .countbtns button{background:#1a1b33;color:var(--ink);border:1px solid #2a2b55;width:30px;height:30px;
+    font-size:18px;border-radius:8px}
+  .countbtns button:disabled{opacity:.3}
+  .prow{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+  .dot{width:18px;height:18px;border-radius:50%;flex:0 0 auto;box-shadow:0 0 12px currentColor}
+  .prow input[type=text]{flex:1;min-width:0;background:#0a0a16;border:1px solid #2a2b55;color:var(--ink);
+    padding:12px;border-radius:10px;font-size:16px;outline:none}
+  .prow input[type=text]:focus{border-color:var(--truth);box-shadow:0 0 0 2px #00e5ff33}
+  .charbtn{background:#0a0a16;border:1px solid #2a2b55;border-radius:10px;padding:5px 6px;
+    display:flex;flex-direction:column;align-items:center;gap:1px;min-width:66px;max-width:66px;
+    color:var(--muted);font-size:8.5px;line-height:1.15;text-align:center}
+  .charbtn .cemoji{font-size:23px}
+  .charbtn:hover{border-color:var(--truth);color:var(--ink)}
+  .startbtn{width:100%;margin-top:18px;padding:16px;font-size:18px;border-radius:14px;
+    background:linear-gradient(90deg,var(--dare),var(--special));color:#fff;
+    box-shadow:0 0 30px #ff2e6377;text-transform:uppercase;letter-spacing:2px}
+  .hint{color:var(--muted);font-size:12px;text-align:center;margin-top:14px;line-height:1.6}
+
+  /* ---------- GAME ---------- */
+  #game{padding:10px 12px 24px;max-width:1020px;margin:0 auto}
+  .topbar{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px}
+  .topbar .logo{font-size:22px;text-align:left}
+  .ghostbtn{background:#16172e;color:var(--muted);border:1px solid #2a2b55;padding:8px 12px;border-radius:10px;font-size:12px}
+  .turnbanner{display:flex;align-items:center;gap:12px;
+    background:linear-gradient(90deg,#0d0e1c,#141433);border:1px solid #2a2b55;
+    border-radius:16px;padding:12px 16px;margin-bottom:12px;box-shadow:0 0 24px #00000066}
+  .turnbanner .dot{width:26px;height:26px}
+  .turnbanner .who{font-size:20px;font-weight:900}
+  .turnbanner .sub{font-size:12px;color:var(--muted)}
+
+  .layout{display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap}
+  .boardwrap{flex:1 1 580px;min-width:300px}
+
+  /* glowing animated frame around the board */
+  .boardframe{position:relative;padding:3px;border-radius:22px;overflow:hidden;
+    background:linear-gradient(125deg,#ff2e63,#ff32e6,#9d6bff,#00e5ff,#39ff14,#ffd23f,#ff2e63);
+    background-size:300% 300%;animation:flow 14s linear infinite;
+    box-shadow:0 0 40px #9d6bff33,0 0 80px #00e5ff22}
+  .board{display:grid;grid-template-columns:repeat(9,1fr);gap:7px;border-radius:19px;padding:12px;
+    background:radial-gradient(120% 120% at 50% 0%,#101027 0%,#08080f 70%)}
+
+  .tile{position:relative;aspect-ratio:1/1;border-radius:12px;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    min-height:46px;overflow:hidden;transition:transform .15s ease;
+    background:#11122a}
+  .tile::before{content:'';position:absolute;inset:0;border-radius:12px;
+    border:1.5px solid var(--tc);box-shadow:inset 0 0 14px var(--tc);opacity:.85}
+  .tile .num{position:absolute;top:3px;left:5px;font-size:8px;color:#ffffff66;font-weight:800;z-index:2}
+  .tile .ico{font-size:20px;line-height:1;z-index:2;filter:drop-shadow(0 0 6px var(--tc))}
+  .tile .lab{font-size:7px;text-transform:uppercase;letter-spacing:.6px;margin-top:2px;z-index:2;
+    color:var(--tc);font-weight:800;text-shadow:0 0 6px var(--tc)}
+  .tile.big .ico{font-size:24px}
+  .tile.cur{transform:scale(1.06);animation:pulse 1.1s ease-in-out infinite}
+  @keyframes pulse{0%,100%{box-shadow:0 0 0 2px #fff,0 0 18px var(--tc)}50%{box-shadow:0 0 0 3px #fff,0 0 30px var(--tc)}}
+  @media(hover:hover){.tile:hover{transform:translateY(-2px)}}
+
+  .toks{position:absolute;bottom:3px;left:0;width:100%;display:flex;flex-wrap:wrap;
+    justify-content:center;gap:2px;padding:0 2px;z-index:3}
+  .tok{width:19px;height:19px;border-radius:50%;border:2px solid currentColor;background:#0b0b18;
+    font-size:12px;display:flex;align-items:center;justify-content:center;
+    box-shadow:0 0 9px currentColor}
+
+  /* city skyline footer under the board */
+  .skyline{margin-top:-2px;height:54px;width:100%;display:block;opacity:.85;
+    filter:drop-shadow(0 0 10px #00e5ff44)}
+
+  .side{flex:1 1 250px;min-width:240px;display:flex;flex-direction:column;gap:12px}
+  .panel{background:linear-gradient(180deg,#0e0f20,#0a0a14);border:1px solid #26285a;border-radius:16px;padding:13px}
+  .panel h3{font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+  .plist .pl{font-size:14px;padding:6px 0;border-bottom:1px solid #ffffff0d}
+  .plmain{display:flex;align-items:center;gap:8px}
+  .plist .pl .dot{width:15px;height:15px;flex:0 0 auto}
+  .pname{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .sip{background:#1a1b33;border:1px solid #2a2b55;color:#ffd9a8;font-size:11px;padding:3px 7px;
+    border-radius:8px;font-weight:800;flex:0 0 auto}
+  .sip:hover{border-color:var(--drink);box-shadow:0 0 8px var(--drink)}
+  .plist .pl .pos{color:var(--muted);font-size:11px;min-width:26px;text-align:right;flex:0 0 auto}
+  .chips{display:flex;flex-wrap:wrap;gap:4px;margin:5px 0 1px 23px}
+  .chip{background:#15162b;border:1px solid #2a2b55;border-radius:8px;font-size:14px;padding:2px 6px;line-height:1.2}
+  .chip:hover{border-color:var(--blr);box-shadow:0 0 8px var(--blr)}
+  .chip.act{border-color:var(--truth);cursor:default}
+  .plist .pl.done{opacity:.5}
+  .plist .pl.active .pname{font-weight:900;text-shadow:0 0 8px currentColor}
+  .seg{display:flex;gap:6px;margin-bottom:4px}
+  .seg button{flex:1;background:#0a0a16;border:1px solid #2a2b55;color:var(--muted);padding:9px 4px;
+    border-radius:10px;font-size:12px;font-weight:700}
+  .seg button.on{background:linear-gradient(90deg,var(--dare),var(--special));color:#fff;
+    border-color:transparent;box-shadow:0 0 14px #ff2e6355}
+  .targets{display:flex;flex-direction:column;gap:8px;margin:12px 0}
+  .targetbtn{background:#15162b;border:1px solid #2a2b55;color:var(--ink);padding:12px;border-radius:10px;font-size:15px}
+  .targetbtn:hover{border-color:var(--blr);box-shadow:0 0 10px var(--blr)}
+  .confetti{position:fixed;inset:0;pointer-events:none;z-index:60}
+  @keyframes shake{10%,90%{transform:translateX(-2px)}20%,80%{transform:translateX(4px)}
+    30%,50%,70%{transform:translateX(-7px)}40%,60%{transform:translateX(7px)}}
+  .shake{animation:shake .5s}
+  .rules{font-size:12px;color:#dfe2ff;line-height:1.5;margin:0;padding-left:2px;list-style:none}
+  .rules li{margin-bottom:8px;padding-left:9px;border-left:3px solid var(--rule)}
+  .rules .empty{color:var(--muted);font-style:italic;border:0;padding-left:0}
+
+  .controls{display:flex;align-items:center;gap:14px;justify-content:center;margin:14px 0 4px}
+  .dice{width:66px;height:66px;border-radius:18px;background:#fff;color:#111;font-size:34px;
+    font-weight:900;display:flex;align-items:center;justify-content:center;box-shadow:0 0 26px #ffffff77}
+  .rollbtn{padding:19px 34px;font-size:18px;border-radius:16px;text-transform:uppercase;letter-spacing:2px;
+    background:linear-gradient(90deg,var(--truth),var(--group));color:#001018;box-shadow:0 0 28px #00e5ff66}
+  .rollbtn:disabled{opacity:.4;box-shadow:none}
+
+  /* ---------- MODAL ---------- */
+  .overlay{position:fixed;inset:0;background:#000000d8;display:flex;align-items:center;justify-content:center;
+    padding:18px;z-index:50;backdrop-filter:blur(4px)}
+  .modal{max-width:460px;width:100%;background:linear-gradient(180deg,#17182f,#0a0a16);
+    border-radius:24px;padding:26px;border:1px solid var(--mc,#2a2b55);
+    box-shadow:0 0 70px #000,0 0 40px var(--mc,#2a2b55)55}
+  .badge{display:inline-block;font-size:12px;font-weight:900;letter-spacing:2px;text-transform:uppercase;
+    padding:7px 16px;border-radius:999px;color:#000}
+  .modal .emoji{font-size:58px;text-align:center;margin:14px 0 6px;filter:drop-shadow(0 0 14px var(--mc))}
+  .modal .body{font-size:19px;line-height:1.5;text-align:center;margin:8px 0 4px;font-weight:600}
+  .modal .meta{text-align:center;color:var(--muted);font-size:12px;margin-top:10px}
+  .modal .ok{width:100%;margin-top:22px;padding:15px;font-size:16px;border-radius:14px;
+    background:linear-gradient(90deg,var(--start),var(--truth));color:#001a12;text-transform:uppercase;letter-spacing:1px}
+  .paraq{font-size:19px;font-weight:800;text-align:center;line-height:1.4;
+    background:#1a0a2e;border:1px solid var(--mc,#b14dff);border-radius:14px;padding:16px;margin-top:12px;
+    color:#fff;box-shadow:inset 0 0 22px #b14dff44}
+  .crazyflash{animation:flash .5s ease 3}
+  @keyframes flash{0%,100%{box-shadow:0 0 70px #000,0 0 40px var(--crazy)}50%{box-shadow:0 0 90px var(--crazy),0 0 60px var(--crazy)}}
+
+  .final .place{font-size:16px;padding:9px 0;border-bottom:1px solid #ffffff14;display:flex;gap:10px;align-items:center}
+  .final .medal{font-size:22px}
+  @media (max-width:560px){
+    .logo{font-size:30px}
+    #setup{padding:20px 14px 50px}
+    #game{padding:8px 8px 18px}
+    .topbar .logo{font-size:20px}
+    .layout{gap:10px}
+    .boardwrap{flex-basis:100%;min-width:0}
+    .board{gap:4px;padding:7px}
+    .tile{min-height:0}
+    .tile .ico{font-size:15px}
+    .tile.big .ico{font-size:17px}
+    .tile .lab{font-size:5.5px;letter-spacing:.2px;margin-top:1px}
+    .tile .num{font-size:6.5px;top:2px;left:3px}
+    .tok{width:14px;height:14px;font-size:9px;border-width:1.5px}
+    .skyline{height:38px}
+    .side{flex-basis:100%;min-width:0}
+    .turnbanner{padding:10px 14px}
+    .turnbanner .who{font-size:18px}
+    .controls{gap:10px;margin:10px 0 4px}
+    .dice{width:58px;height:58px;font-size:30px}
+    .rollbtn{padding:18px 30px;font-size:17px}
+    .plist .pl{font-size:14px;padding:8px 0}
+    .sip{font-size:13px;padding:6px 10px}
+    .chip{font-size:17px;padding:5px 10px}
+    .modal{padding:22px}
+    .modal .body{font-size:18px}
+    .modal .emoji{font-size:50px;margin:10px 0 6px}
+    .modal .ok{padding:16px}
+    .targetbtn{padding:14px;font-size:16px}
+  }
+  /* short landscape phones: keep board + panel side by side, trim vertical chrome */
+  @media (max-height:480px) and (orientation:landscape){
+    .turnbanner{margin-bottom:8px;padding:8px 12px}
+    .boardwrap{flex:1 1 60%}
+    .side{flex:1 1 34%}
+    .controls{margin:8px 0 0}
+    .dice{width:50px;height:50px;font-size:26px}
+    .rollbtn{padding:14px 26px}
+  }
+</style>
+</head>
+<body>
+
+<!-- ================= SETUP ================= -->
+<div id="setup">
+  <div class="logo">NAMMA NIGHTS<small>BANGALORE DRINKING BOARD</small></div>
+  <div class="card-box">
+    <div class="lbl"><span>Players</span>
+      <span class="countbtns">
+        <button id="minus" onclick="changeCount(-1)">−</button>
+        <span id="countLabel" style="min-width:22px;text-align:center;color:var(--ink);font-weight:800">6</span>
+        <button id="plus" onclick="changeCount(1)">+</button>
+      </span>
+    </div>
+    <div id="nameRows"></div>
+    <div class="lbl" style="margin-top:8px"><span>Intensity</span></div>
+    <div class="seg" id="intSeg">
+      <button data-i="chill" onclick="setIntensity('chill')">😎 Chill</button>
+      <button data-i="wild" class="on" onclick="setIntensity('wild')">🔥 Wild</button>
+      <button data-i="unhinged" onclick="setIntensity('unhinged')">💀 Unhinged</button>
+    </div>
+    <button class="startbtn" onclick="startGame()">Start the Night 🍻</button>
+    <div class="hint">Add or remove players anytime (4–6). One shared screen — pass it on every turn.<br>Everyone must reach FINISH for the game to end. Drink responsibly.</div>
+  </div>
+</div>
+
+<!-- ================= GAME ================= -->
+<div id="game" class="hidden">
+  <div class="topbar">
+    <div class="logo">NAMMA NIGHTS</div>
+    <button class="ghostbtn" onclick="if(confirm('Back to home screen? Current game will end.'))returnHome()">Home</button>
+  </div>
+
+  <div class="turnbanner">
+    <div class="dot" id="turnDot"></div>
+    <div>
+      <div class="who" id="turnWho">—</div>
+      <div class="sub">it's your turn — roll the dice</div>
+    </div>
+  </div>
+
+  <div class="layout">
+    <div class="boardwrap">
+      <div class="boardframe"><div class="board" id="board"></div></div>
+      <svg class="skyline" viewBox="0 0 900 54" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+        <g fill="#0c1230" stroke="#00e5ff44" stroke-width="1">
+          <rect x="10" y="24" width="34" height="30"/><rect x="50" y="14" width="22" height="40"/>
+          <rect x="80" y="30" width="40" height="24"/><rect x="128" y="6" width="18" height="48"/>
+          <rect x="154" y="28" width="46" height="26"/><rect x="206" y="18" width="26" height="36"/>
+          <rect x="240" y="34" width="38" height="20"/><rect x="286" y="10" width="20" height="44"/>
+          <rect x="314" y="26" width="44" height="28"/><rect x="366" y="20" width="24" height="34"/>
+          <rect x="398" y="32" width="42" height="22"/><rect x="448" y="8" width="18" height="46"/>
+          <rect x="474" y="28" width="40" height="26"/><rect x="522" y="16" width="26" height="38"/>
+          <rect x="556" y="34" width="36" height="20"/><rect x="600" y="12" width="20" height="42"/>
+          <rect x="628" y="26" width="46" height="28"/><rect x="682" y="20" width="24" height="34"/>
+          <rect x="714" y="32" width="40" height="22"/><rect x="762" y="10" width="20" height="44"/>
+          <rect x="790" y="28" width="44" height="26"/><rect x="842" y="18" width="24" height="36"/>
+        </g>
+      </svg>
+      <div class="controls">
+        <div class="dice" id="dice">🎲</div>
+        <button class="rollbtn" id="rollBtn" onclick="roll()">Roll</button>
+      </div>
+    </div>
+    <div class="side">
+      <div class="panel"><h3>Players</h3><div class="plist" id="plist"></div></div>
+      <div class="panel"><h3>📜 House Rules (live)</h3>
+        <ul class="rules" id="rulesList"><li class="empty">No rules yet… land on a 📜 tile.</li></ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* =================================================================
+   ⭐ CUSTOM BLOCK — EDIT THIS! ⭐
+   Drop in your own bars, areas, and inside jokes here.
+   Placeholders you can use in any line:
+     {p} = current player     {o} = a random other player     {anyone} = any random player
+   Anything you add gets shuffled into the deck automatically.
+================================================================= */
+const CUSTOM = {
+  dares: [
+    // "{p}, reenact the time {o} got us kicked out of <YOUR BAR>.",
+  ],
+  truths: [
+    // "{p}, what really happened that night at <YOUR SPOT>?",
+  ],
+  bangalore: [
+    // "Everyone who's been to <YOUR FAVOURITE BREWERY>, drink.",
+  ],
+  group: [
+    // "Toast to <INSIDE JOKE>. Everyone drinks.",
+  ],
+  rules: [
+    // "New rule: every time someone mentions <NAME>, take a sip. (set by {p})",
+  ],
+  crazy: [
+    // "{p}, finish your drink in honour of <INSIDE JOKE>.",
+  ],
+  paranoia: [
+    // "Who in this room is most likely to <INSIDE JOKE>?",
+  ],
+};
+/* ============== end custom block ============== */
+
+const PLAYER_COLORS = ['#ff2e63','#00e5ff','#ffd23f','#39ff14','#ff8c1a','#9d6bff'];
+const DEFAULT_NAMES = ['Player 1','Player 2','Player 3','Player 4','Player 5','Player 6'];
+const CHARACTERS = [
+  {e:'🛺',n:'Auto Anna'},
+  {e:'🍺',n:'Toit Tiger'},
+  {e:'☕',n:'Filter Coffee'},
+  {e:'🏍️',n:'Swiggy Speedster'},
+  {e:'🦜',n:'Cubbon Parrot'},
+  {e:'🕺',n:'Phoenix Floor-Filler'},
+  {e:'👽',n:'Crypto Bro'},
+  {e:'🐅',n:'Tipsy Tiger'},
+  {e:'🥥',n:'Tender Coconut'},
+  {e:'🦦',n:'Sarjapur Otter'},
+  {e:'🦩',n:'Brunch Flamingo'},
+  {e:'🐉',n:'Traffic Dragon'},
+];
+
+/* ---------------- CONTENT DECKS ---------------- */
+const DECK = {
+  dare:[
+    "{p}, do your best Koramangala startup-bro pitch for 30 seconds — no 'synergy', no 'disrupt'. Fail = 2 sips.",
+    "{p}, text the 3rd person in your WhatsApp: 'saw you at Toit, couldn't stop thinking about it'. Screenshot or 3 sips.",
+    "{p} & {o}: 20 seconds of dead-eye eye contact. First to laugh drinks twice.",
+    "{p}, reenact an auto driver refusing to come to your area. Full drama or drink.",
+    "{p}, let {o} post ONE story on your Instagram. Stays up 10 min or you finish your drink.",
+    "{p}, speak only in a fake American accent till your next turn. Each slip = 1 sip.",
+    "{p}, show the last photo in your camera roll to the group. Refuse = 3 sips.",
+    "{p}, 10 squats while naming Bangalore areas — miss one and drink.",
+    "{p}, serenade {o} with 15 seconds of any Bollywood song.",
+    "{p}, let the group see your screen-time. Your #1 app — justify it or drink.",
+    "{p}, say 'Bruhat Bengaluru Mahanagara Palike' 3x fast. Fail = 2 sips.",
+    "{p}, call {o} a pet name for the rest of the game. Forget once = drink.",
+    "{p}, do your most convincing 'I'm not drunk' walk across the room.",
+    "{p}, dramatic slow-mo reaction to seeing the bill at a Brigade Road bar.",
+    "{p}, let {o} send one emoji to anyone in your DMs. No takebacks.",
+    "{p}, impersonate the most dramatic person you know explaining why their area is the best. 30 sec or drink.",
+    "{p}, hold a plank until your next turn or take 3 sips now.",
+    "{p}, do a fake cooking-show intro for the snack in front of you.",
+    "{p}, swap one item of clothing with {o} for the next 2 rounds.",
+    "{p}, do your best runway walk to the kitchen and back. No commitment = drink.",
+    "{p}, do your best commentary of the last goal you watched — full Peter Drury energy. Flat delivery = drink.",
+    "{p}, call {o} your manager for the next 3 rounds and ask permission before every drink. Forget = sip.",
+    "{p}, post 'who's up?' on your close-friends story right now. Don't = 3 sips.",
+    "{p}, do 15 seconds of your worst ever dance move on loop. Stop early = drink.",
+    "{p}, let {o} pick any contact and you voice-note them 'thinking of you'. Refuse = 3 sips.",
+    "{p}, recreate your most dramatic 'I'm never drinking again' speech. Underwhelm us = drink.",
+    "{p}, speak in rhymes till your next turn. Each non-rhyme = 1 sip.",
+    "{p}, do an impression of {o} until someone guesses it's them. Fail in 30s = drink.",
+    "{p}, narrate everything you do out loud like a wildlife documentary till your next turn. Slip = sip.",
+    "{p}, show the group your most-used GIF or sticker. Boring one = 2 sips.",
+    "{p}, let {o} write your next WhatsApp status. It stays up 10 min or you finish your drink.",
+    "{p}, do a TED-talk intro for the dumbest thing you strongly believe. 30 seconds or drink.",
+    "{p}, attempt a cartwheel or a pushup of {o}'s choice. Chicken out = 2 sips.",
+    "{p}, only communicate by charades till your next turn. Speak = 1 sip.",
+    "{p}, send the most recent meme in your camera roll to the group chat. Don't = 3 sips.",
+    "{p}, do your best fake cry until {o} laughs. Can't in 30s = drink.",
+    "{p}, propose a toast to {o} so heartfelt it's borderline a wedding speech. Half-effort = drink.",
+    "{p}, balance something on your head and walk a lap. Drop it = 2 sips.",
+    "{p}, do your best slurred 'I love you guys, no but seriously' before you're even drunk. Refuse = sip.",
+    "{p}, let the group scroll your photos app to the very first photo. Refuse = 3 sips.",
+    "{p}, freestyle rap for 20 seconds about the person on your right. Bail = drink.",
+    "{p}, do your most convincing fake phone call with an imaginary ex. Break character = sip.",
+    "{p}, attempt to name everyone's full name in the room in 10 seconds. Miss any = drink.",
+    "{p}, do the worm or any floor move. Refuse = 2 sips.",
+    "{p}, pick {o} and compliment them for a full 20 seconds straight, no repeats. Run dry = drink.",
+    "{p}, do an ad read for whatever drink is in your hand like it's a Super Bowl spot.",
+    "{p}, talk only in questions till your next turn. A statement = 1 sip.",
+    "{p}, let {o} give you a new accent to use until your next turn. Drop it = sip.",
+    "{p}, do your best catwalk-turn-and-pose. Weak commitment = the group decides your sips.",
+    "{p}, text 'be honest, what's your first impression of me?' to someone outside this room. Don't = 3 sips.",
+    "{p}, reenact a penalty shootout in slow motion — you're both keeper and striker. No effort = drink.",
+    "{p}, do your most dramatic death scene the next time someone says the word 'shot'. Until then, stay ready.",
+    "{p}, hold {o}'s hand for the next 2 rounds. Let go = both drink.",
+    "{p}, do your best impression of a Bangalore aunty asking when you'll get married.",
+    "{p}, whisper everything you say till your next turn. Normal volume = sip.",
+    "{p}, attempt to lick your elbow. Fail (you will) = 1 fun sip.",
+    "{p}, give {o} a dramatic over-the-top introduction like they're entering a boxing ring.",
+    "{p}, do 10 jumping jacks counting in Kannada. Blank out = drink.",
+    "{p}, let the group pick an emoji you must say out loud at the end of every sentence till your turn. Forget = sip.",
+    "{p}, do your best villain monologue about why you deserve to win this game.",
+    "{p}, mimic the last person who annoyed you in traffic. Full drama or drink.",
+    "{p}, sing your drink order to the tune of any song. Speak it instead = 2 sips.",
+    "{p}, let {o} draw on your hand or arm with whatever's around. Refuse = 3 sips.",
+    "{p}, do an impression of a drunk football commentator calling this game.",
+    "{p}, give your phone to {o} to read your latest notification out loud. Refuse = 3 sips.",
+    "{p}, do your most confident strut while saying 'I'm the main character'. Cringe out = drink.",
+    "{p}, attempt a magic trick right now with anything on the table. Flop = 2 sips.",
+    "{p}, compliment everyone's outfit in one breath. Run out of air = drink.",
+    "{p}, do your best impression of {o} ordering at a fancy restaurant.",
+    "{p}, narrate your next two turns in third person like a sports anchor. Slip to first person = sip.",
+    "{p}, do a 10-second motivational speech to your drink before you sip it.",
+    "{p}, let {o} tickle-test you for 5 seconds. Laugh = drink.",
+    "{p}, do the most dramatic slow clap for the last person who drank.",
+    "{p}, attempt to say 'red lorry yellow lorry' five times fast. Mess up = 2 sips.",
+    "{p}, act out your morning-after-a-big-night routine. No effort = drink.",
+    "{p}, give {o} a stage name and use only that for the rest of the game. Slip = sip.",
+    "{p}, do your best runway-model death-stare at each person for 2 seconds. Laugh = drink.",
+    "{p}, pretend to be the group's tour guide and introduce each 'exhibit' (person). Boring = drink.",
+    "{p}, do an impression of the most extra person in your family.",
+    "{p}, let the group whisper a dare; you either do it or take 2 sips. Decide out loud.",
+    "{p}, attempt to balance on one leg until your next turn. Touch down = 2 sips.",
+    "{p}, do your best fake laugh at {o}'s next sentence like it's the funniest thing ever.",
+    "{p}, recreate your reaction the last time your team conceded a last-minute goal.",
+    "{p}, talk in slow motion till your next turn. Normal speed = sip.",
+    "{p}, send 'I have something to tell you...' to a friend, then 'wrong chat sorry' right after. Don't = 3 sips.",
+    "{p}, do an interpretive dance of your current mood. Refuse = drink.",
+    "{p}, let {o} pick: you do their accent, or you finish a snack in one bite.",
+    "{p}, give a passionate 20-second defense of your most controversial food opinion.",
+    "{p}, do your best 'walking into the club' entrance from across the room.",
+    "{p}, pretend {o} just proposed to you and react accordingly. Half-effort = drink.",
+    "{p}, do 5 squats every time someone says your name till your next turn.",
+    "{p}, attempt your best beatbox for 15 seconds. Silence = 2 sips.",
+    "{p}, give the group your honest 'if I had one day left' bucket list, fast. Hesitate = drink.",
+    "{p}, do your most dramatic reading of the last text {o} allows you to read aloud.",
+    "{p}, become the room's hype-man for the next round — narrate every sip. Go quiet = drink.",
+    "{p}, do an impression of yourself at 3am after a night out.",
+    "{p}, let {o} restyle your hair right now. Refuse = 3 sips.",
+    "{p}, give a fake award-acceptance speech thanking everyone who got you to this tile.",
+  ],
+  truth:[
+    "{p}: who here would you survive a Silk Board jam with, and who would you abandon?",
+    "{p}: most embarrassing thing you've done at a brewery. Spill or drink twice.",
+    "{p}: rank everyone by who you'd actually text at 2am. Out loud.",
+    "{p}: ever ghosted a Hinge/Bumble match in this city? Story or 3 sips.",
+    "{p}: worst date you've been on in Bangalore?",
+    "{p}: which person here is most likely to end up on a reality show, and why?",
+    "{p}: confess one thing nobody in this room knows. Or finish your drink.",
+    "{p}: who here has the worst taste in partners? Point and defend it.",
+    "{p}: last lie you told to get out of plans?",
+    "{p}: whose Instagram do you stalk the most in this room? Be honest or drink twice.",
+    "{p}: most money you've blown on one drunk night out here?",
+    "{p}: if you had to swap lives with someone in this room for a week, who and why?",
+    "{p}: rate your own messiness when drunk out of 10. The group can override you (and make you drink).",
+    "{p}: what's the pettiest reason you've judged someone on a date?",
+    "{p}: which of your exes would the group actually like? Or drink.",
+    "{p}: what's a secret talent you've never shown anyone here?",
+    "{p}: who here have you known the longest — and what's a secret from those early days?",
+    "{p}: back at Indus, who did you secretly have a crush on? Name them or drink twice.",
+    "{p}: most trouble you got into at school — confess or finish half your drink.",
+    "{p}: which one of us has changed the MOST since high school? Be brutally honest.",
+    "{p}: which teacher from Indus would be most disappointed seeing you right now?",
+    "{p}: what's the biggest secret you've kept from someone in this room?",
+    "{p}: if you had to expose one person here's biggest flaw, who and what?",
+    "{p}: who in this group would you trust with your life, and who absolutely not?",
+    "{p}: deepest insecurity you've never said out loud — share it, or finish your drink.",
+    "{p}: which friendship in this room do you think won't survive the next 10 years?",
+    "{p}: if everyone here saw your search history, who'd be the most shocked?",
+    "{p}: who in this room have you thought about in a not-so-friendly way? Name them or drink twice.",
+    "{p}: what's the most you've ever spent to impress someone on a date here?",
+    "{p}: who here gives the best advice and who gives the worst? Be specific.",
+    "{p}: last time you cried, and what set it off? Skip = finish half your drink.",
+    "{p}: which person here would you call first if you got arrested, and who would you never tell?",
+    "{p}: be honest — who in this room have you talked behind the back of? No names = drink twice.",
+    "{p}: what's a compliment you've always wanted to hear but never have?",
+    "{p}: who here is secretly the most competitive? Point and explain.",
+    "{p}: what's the pettiest thing you've held a grudge about in this friend group?",
+    "{p}: rank the room by who'd survive longest if money disappeared tomorrow.",
+    "{p}: what's the biggest red flag you've ignored because someone was attractive?",
+    "{p}: who in this room do you most want to be more like, and why?",
+    "{p}: what's the worst thing you've ever said about an ex out loud?",
+    "{p}: which of us would you swipe right on if we were all strangers on Hinge?",
+    "{p}: what's a lie you've told this group that you're only confessing now? Or drink.",
+    "{p}: who here have you had a 'what if' moment with? Vague answer = drink twice.",
+    "{p}: what's the most embarrassing thing currently saved in your camera roll?",
+    "{p}: who do you think has the biggest glow-up since Indus, and who peaked in school?",
+    "{p}: what's something you pretend to like just to fit in with this group?",
+    "{p}: who here would you actually go into business with, and who would bankrupt you?",
+    "{p}: most delusional thing you genuinely believe about yourself?",
+    "{p}: what's a secret you'd take to the grave — give us the topic, at least, or drink.",
+    "{p}: which friendship in this room are you most grateful for tonight? Say it to their face.",
+    "{p}: who in this room has the best and worst taste in music? Defend it.",
+    "{p}: what's the most reckless thing you've done for a crush?",
+    "{p}: if you could undo one thing you did in school, what would it be?",
+    "{p}: who here do you think is most likely to get married first, and who never will?",
+    "{p}: what's the biggest career lie on your LinkedIn? Or drink.",
+    "{p}: who in this room intimidates you the most, even now? Be honest.",
+    "{p}: what's the longest you've gone stalking someone's profile, and whose?",
+    "{p}: which of us is the most fake-deep on social media? Point.",
+    "{p}: what's a thing about yourself you've completely changed to impress someone?",
+    "{p}: who here have you been jealous of, and over what?",
+    "{p}: most embarrassing thing you've done while drunk that this group still hasn't let go of?",
+    "{p}: if you had to set up two people in this room, who and who?",
+    "{p}: what's the worst date idea you've ever genuinely thought was romantic?",
+    "{p}: who in this group keeps you grounded, and who's a terrible influence?",
+    "{p}: what's a fear about the future you've never said out loud? Or finish your drink.",
+    "{p}: who would you trade lives with for a year, and what scares you about your own?",
+    "{p}: most childish thing that still makes you genuinely happy?",
+    "{p}: what's something you did for attention that you're not proud of?",
+    "{p}: who here knows the real you the least, despite how long you've known each other?",
+    "{p}: what's the biggest risk you regret NOT taking?",
+    "{p}: which of your exes do you still think about, even a little? Or drink twice.",
+    "{p}: what's a habit of yours you know annoys everyone but you won't quit?",
+    "{p}: if everyone here voted on your worst trait, what would win? Guess before they say it.",
+    "{p}: who in this room could convince you to do almost anything?",
+    "{p}: what's the most you've ever lied on a first date?",
+    "{p}: who here have you underestimated, and what changed your mind?",
+    "{p}: what's a moment you felt truly betrayed by someone — topic only, or finish your drink.",
+    "{p}: which of us would you want in your corner during a real crisis?",
+    "{p}: what's the cringiest thing in your sent-messages folder right now?",
+    "{p}: who do you think secretly judges your life choices the most in this room?",
+    "{p}: what's something you've forgiven but definitely not forgotten?",
+    "{p}: if your teenage self saw you now, what would disappoint them most?",
+    "{p}: who in this room would you call at your lowest, no questions asked?",
+    "{p}: what's the most superficial reason you've ended things with someone?",
+    "{p}: which person here has changed your life the most, and do they know it?",
+    "{p}: what's a thought you've had about someone here that you'd never admit sober?",
+    "{p}: most embarrassing thing you've done to get over a breakup?",
+    "{p}: who here do you think will drift away first, realistically? Be brutal.",
+    "{p}: what's the dumbest thing you've cried over as an adult?",
+    "{p}: which of us would you NOT want to be stuck on a road trip with?",
+    "{p}: what's a secret talent or interest you hide because it's 'not cool'?",
+    "{p}: who in this room gives the best hugs, and who you'd avoid one from?",
+    "{p}: what's the most you've ever ghosted someone — days, weeks, forever?",
+    "{p}: if you had to confess a crush from this friend group's history, who?",
+    "{p}: what's something you're insecure about that you cover with humour?",
+    "{p}: who here would you trust to plan your entire wedding?",
+    "{p}: what's the wildest place you've ever woken up after a night out?",
+    "{p}: who in this room have you compared yourself to the most over the years?",
+    "{p}: what's a moment you genuinely thought 'this friendship is over'?",
+    "{p}: which of us is the best liar? Point, and watch their face.",
+    "{p}: what's the nicest thing someone in this room has done that you never thanked them for?",
+    "{p}: who's the one person here you'd want at your side if it all fell apart?",
+    "{p}: what's the most embarrassing crush you've ever had — celebrity or otherwise?",
+    "{p}: which decision are you most scared you'll regret in 10 years?",
+    "{p}: who in this room do you think has the most secrets?",
+    "{p}: what's something you pretend not to care about but absolutely do?",
+    "{p}: most awkward run-in you've had with someone you used to date?",
+    "{p}: which friend here would you bail on plans with the least guilt?",
+    "{p}: what's a thing you've never told your parents that this group knows?",
+    "{p}: who here is the most 'all talk', and who actually delivers?",
+    "{p}: what's the most desperate thing you've done to keep someone interested?",
+    "{p}: if you could read one person's mind in this room for a day, whose?",
+    "{p}: what's the closest you've come to completely changing your life path?",
+    "{p}: who in this room makes you feel most like yourself?",
+    "{p}: what's a rumour about you that was completely true? Or drink twice.",
+    "{p}: which of us would handle your funeral speech best, and who'd roast you?",
+    "{p}: what's the most you've ever overshared with a stranger?",
+    "{p}: who here have you wanted to call out but never had the guts to?",
+    "{p}: what's a small thing someone did that made you fall for them?",
+    "{p}: which version of you from the past would this group miss the most?",
+    "{p}: what's the loneliest you've felt even while surrounded by people?",
+    "{p}: who in this room would you want to swap childhoods with?",
+    "{p}: what's the most honest thing you can say about your love life right now?",
+    "{p}: who do you think has the best poker face in this group?",
+    "{p}: what's a goal you've told no one because you're scared to fail at it?",
+    "{p}: which friend here do you wish you'd been closer with sooner?",
+    "{p}: what's the most embarrassing thing your search history would reveal about your love life?",
+    "{p}: who in this room is most likely to age the best, inside and out?",
+    "{p}: what's the bravest thing you've ever done emotionally?",
+    "{p}: which of us do you secretly think is the funniest, even if you won't say it?",
+    "{p}: what's a moment from tonight or before you'll actually remember in 10 years?",
+    "{p}: who here would you forgive almost anything, and who gets no second chances?",
+    "{p}: what's the realest thing you can say about how you're doing — actually?",
+  ],
+  bangalore:[
+    "{p}: name a brewery on/near Church Street in 5 seconds. Fail = drink.",
+    "Everyone who's complained about traffic TODAY — take a sip.",
+    "Everyone who's lived in Koramangala or HSR, drink to the rent.",
+    "{p}: pitch why your area beats {o}'s area. Group votes, loser drinks.",
+    "{p}: order a filter coffee in your best Kannada. Mess it up = 2 sips.",
+    "Everyone stuck on Outer Ring Road past 8pm this week — drink.",
+    "{p}: name 3 momo/street-food spots in 10 seconds or drink.",
+    "Last person to shout 'Namma Bengaluru' drinks. GO.",
+    "{p}: name 5 metro stations on one line. Blank out = drink.",
+    "Anyone wearing something bought on Commercial/Brigade Road — sip. Nobody? {p} drinks.",
+    "{p}: which Bangalore neighbourhood has the most fake personalities? Defend your answer.",
+    "Everyone who's pulled an all-nighter drinking with this crew — drink to the memories.",
+    "{p}: has it rained on you unexpectedly this month? If yes, drink.",
+    "{p}: name a pub or club in Bangalore that shut down that you still miss. Blank = drink.",
+    "{p}: best and worst thing about living in Bangalore — 5 seconds each. Hesitate = sip.",
+    "Everyone who's ordered from the same restaurant 3+ times this week — drink to the routine.",
+    "{p}: name a place in Bangalore we used to hang out at as teenagers. Blank = drink.",
+    "{p}: Whitefield, Sarjapur or Indiranagar — where would you live forever? Defend it or drink.",
+    "Everyone who grew up in Bangalore, drink. Everyone who didn't, drink for moving here.",
+    "{p}: name 3 microbreweries in Bangalore in 10 seconds. Blank = drink.",
+    "Everyone who's been to Toit at least 5 times — drink to your second home.",
+    "{p}: do your best impression of an Indiranagar 'I only drink craft beer' guy.",
+    "Everyone who's ever fought with an auto driver over fare — sip. Won the fight? Just one sip more.",
+    "{p}: name a dish you'd defend with your life from a Bangalore darshini. Hesitate = drink.",
+    "Everyone who's missed a flight or train because of Bangalore traffic — finish that thought, then drink.",
+    "{p}: best biryani spot in the city — say it fast. Group disagrees? You drink.",
+    "Everyone who's lived in a PG in this city — drink to the questionable food.",
+    "{p}: pitch Bangalore weather to an outsider in 10 seconds without lying. Fail = drink.",
+    "Everyone who's been rained on without an umbrella this year — drink.",
+    "{p}: name the most overrated 'hangout' area in Bangalore. Defend it or drink.",
+    "Everyone who's said 'let's meet halfway' and still got stuck in traffic — sip.",
+    "{p}: best late-night food run spot in Bangalore. Blank = drink.",
+    "Everyone who's complained about Bangalore rent this month — drink to the landlords.",
+    "{p}: which part of Bangalore has the worst parking? Rant for 10 seconds or drink.",
+    "Everyone who's ever ordered Swiggy/Zomato twice in one day — drink, no shame.",
+    "{p}: name a Bangalore lake. Just one. Blank = drink twice.",
+    "Everyone who's been to a rooftop bar on MG/Brigade Road — cheers, drink.",
+    "{p}: do your best 'Bengaluru weather is the best in India' speech. Underwhelm us = drink.",
+    "Everyone who still says 'Bangalore' instead of 'Bengaluru' out of habit — sip.",
+    "{p}: name three things only Bangalore people complain about. Slow = drink.",
+    "Everyone who's spent 2+ hours getting to the airport — drink to the early alarm.",
+    "{p}: which is better — old Bangalore or new Bangalore? Pick and defend, or drink.",
+    "Everyone who's had filter coffee today — drink. Everyone who hasn't — drink in shame.",
+    "{p}: name a club in Bangalore you've been kicked out of or nearly. Story or 2 sips.",
+    "Everyone who's pretended to like a 'happening' brewery just for the photos — drink.",
+    "{p}: best dosa in the city, go. Group overrules you = you drink.",
+    "Everyone who's been stuck on the Outer Ring Road during a downpour — pour one out, then drink.",
+    "{p}: name a Bangalore street famous for one specific thing. Blank = drink.",
+    "Everyone who's complained 'this city has changed' — sip, boomer.",
+    "{p}: which Bangalore neighbourhood would you never live in, and why?",
+    "Everyone who's been to a house party that got shut down here — drink to the neighbours.",
+    "{p}: do an impression of a Bangalore techie explaining their startup at a party.",
+    "Everyone who's used 'traffic' as an excuse when they were just late — drink.",
+    "{p}: name the most expensive thing you've impulse-bought in this city. Regret = drink.",
+    "Everyone who's danced at Phoenix/any club till closing — drink to the aching feet.",
+    "{p}: which Bangalore food trend was the most overhyped? Rant or drink.",
+    "Everyone who's had chai at a roadside stall after a big night — drink to recovery.",
+    "{p}: name a place in Bangalore you'd take someone on a perfect first date. Vague = drink.",
+    "Everyone who's argued about the 'best area in Bangalore' before — you're doing it again, drink.",
+    "{p}: do your best 'aunty bargaining at Commercial Street' performance.",
+    "Everyone who's been to a concert/gig in Bangalore — drink to the overpriced water.",
+    "{p}: which Bangalore mall is the most pointless? Defend your pick or drink.",
+    "Everyone who's pulled an all-nighter at a 24-hour spot here — drink, you legend.",
+    "{p}: name a Bangalore landmark you've never actually visited despite living here.",
+    "Everyone who's complained about no proper beaches near Bangalore — drink, landlocked friend.",
+    "{p}: best hangover food in the city, fast. Blank = drink twice.",
+    "Everyone who's said 'Bangalore is so expensive now' tonight — sip.",
+    "{p}: do your best impression of someone giving directions using 'the building near the thing'.",
+    "Everyone who's been to a wedding in Bangalore this year — drink to the buffet.",
+    "{p}: which is the most overrated cafe in Bangalore? Group can challenge you (and make you drink).",
+    "Everyone who's ever said 'one last drink' here and absolutely lied — drink.",
+    "{p}: name a Bangalore spot that's romantic on paper but a disaster in reality.",
+    "Everyone who grew up taking the same school route in Bangalore — drink to the memories.",
+    "{p}: pitch your ideal Bangalore Sunday in 15 seconds. Boring = drink.",
+    "Everyone who's blamed 'the weather' for cancelling plans — sip, liar.",
+    "{p}: which Bangalore area has the best food scene? Defend it to the death or drink.",
+    "Everyone who's been to a 'house party' that was really just 6 people and a speaker — drink.",
+    "{p}: name something about Bangalore you'd genuinely miss if you moved away.",
+    "Everyone who's had a 'we should do this more often' night here — drink, because tonight's it.",
+    "{p}: do your best Bangalore traffic police whistle and hand signals.",
+    "Everyone who's spent more on cabs than rent in a month — drink to the surge pricing.",
+    "{p}: which Bangalore festival or event is the most chaotic? Story or drink.",
+    "Everyone who's been to a brunch that turned into an all-day drinking session — cheers, drink.",
+    "{p}: name a place this exact group has made a memory at. Blank = drink twice.",
+    "Everyone who's said 'let's plan a trip' in this group and never planned it — drink.",
+    "{p}: which Bangalore area pretends to be cooler than it is? Call it out or drink.",
+    "Everyone who's been caught in a sudden Bangalore power cut mid-party — drink in the dark.",
+    "{p}: do your best 'first day in Bangalore' tourist impression.",
+    "Everyone who's ever lost something at a Bangalore club and never got it back — drink.",
+    "{p}: name the spot where this group has had its wildest night. Make everyone there drink.",
+    "Everyone who's used the metro to dodge traffic and felt smug about it — drink.",
+    "{p}: which Bangalore neighbourhood is the biggest 'character development' area? Explain or drink.",
+    "Everyone who's promised to wake up early for a Bangalore sunrise plan and slept in — drink.",
+    "{p}: best comfort-food order for a rainy Bangalore night, fast. Blank = drink.",
+  ],
+  group:[
+    "WATERFALL! {p} starts. Everyone drinks; you can't stop till the person before you stops.",
+    "Most likely to send a risky text tonight. On 3, everyone points. Most votes drinks twice.",
+    "Categories — Bangalore areas. Clockwise from {p}, no repeats. First to blank drinks.",
+    "Never Have I Ever: {p} says one. Everyone who's done it drinks.",
+    "Vote: messiest drunk in the room. They drink.",
+    "Cheers to whoever organised tonight — everyone drinks to them.",
+    "Thumb master: {p} can secretly put a thumb on the table anytime till next turn. Last to follow drinks.",
+    "Everyone with an 8am tomorrow — drink now, regret later.",
+    "Group toast: to bad decisions in good company. Bottoms up, everyone.",
+    "Point at the funniest person here. Most points = takes a victory shot/sip.",
+    "Rock-paper-scissors: {p} vs {o}. Loser drinks twice.",
+    "Everyone share the most-used emoji on your phone. Funniest one makes the rest drink.",
+    "{p}: top 3 footballers of all time, 10 seconds. Hesitate = drink.",
+    "Messi or Ronaldo — everyone points to their pick on 3. The smaller group drinks.",
+    "Everyone name your football club. Anyone supporting a rival of {p}'s club drinks.",
+    "{p}: name a Champions League winner from the last 10 years or drink.",
+    "Football confessions: everyone whose team lost their last match drinks. {p} goes first.",
+    "{p}: most heartbreaking football moment you've watched. Teared up? Drink.",
+    "{p}: pick the biggest glory-hunter fan in this room. They drink (or defend themselves).",
+    "Everyone point at who's most likely to text their ex tonight. Most votes finishes the thought, then drinks.",
+    "{p} picks a category (movies, food, areas). Go clockwise, no repeats — first to blank drinks.",
+    "Most likely to cry tonight — on 3, everyone points. Top vote drinks twice.",
+    "Everyone who's single, drink. Everyone who's not, drink for surviving it.",
+    "{p} starts a story one word at a time around the circle. Whoever breaks the sentence drinks.",
+    "Vote: who's the mum of the friend group? They take a proud sip.",
+    "Everyone whose phone is below 30% battery — drink, you live dangerously.",
+    "{p} vs the room: name footballers A-Z. {p} loses a round = drinks.",
+    "Most likely to start a fight in a club — point on 3. Winner drinks twice.",
+    "Everyone who's checked their phone in the last 5 minutes — drink.",
+    "Group toast to the most embarrassing thing that's happened tonight. Everyone drinks.",
+    "{p}: pick two people who'd make the worst couple. They both drink (or prove you wrong).",
+    "Everyone name a country you've been to. Repeats drink. {p} goes first.",
+    "Most likely to ghost the group chat for a week — point on 3. Top vote drinks.",
+    "Everyone whose team has won a trophy in the last 5 years — gloat, then drink.",
+    "{p} is the DJ: name a hype song. Anyone who doesn't know it drinks.",
+    "Vote: who gives the worst dating advice? They drink and defend it.",
+    "Everyone who's been to a game live in a stadium — drink to the atmosphere.",
+    "Categories — football clubs. Clockwise from {p}, no repeats. First to blank drinks.",
+    "Most likely to become rich and forget us all — point on 3. Top vote drinks.",
+    "Everyone who's rage-quit a FIFA/eFootball match — drink to the broken controller.",
+    "{p}: assign a football position to everyone here based on their personality. Group can veto = you drink.",
+    "Never Have I Ever, football edition: {p} says one. Everyone guilty drinks.",
+    "Vote: messiest texter when drunk. They drink and hand someone their phone.",
+    "Everyone who's supported a team purely because of one player — drink, bandwagoner.",
+    "{p} picks a 'most likely to' — group votes on 3, winner drinks.",
+    "Everyone who's argued Messi vs Ronaldo sober — you're about to do it drunk, drink first.",
+    "Toast to the person who's been the best friend this year. {p} picks, everyone drinks to them.",
+    "Most likely to fall asleep first tonight — point on 3. Top vote drinks to stay awake.",
+    "Everyone name your dream dinner guest, dead or alive. Boring answer = group makes you drink.",
+    "{p}: rank the room from most to least likely to survive a horror movie. Last place drinks.",
+    "Everyone who's cried over a football result — real ones, drink.",
+    "Vote: who's the worst at keeping secrets? They drink (and probably already told someone).",
+    "Everyone who's been to a watch party with this crew — drink to the chaos.",
+    "{p}: pick the group's biggest drama magnet. They drink or call you out.",
+    "Most likely to start crying-laughing tonight — point on 3. Top vote drinks.",
+    "Everyone do your best celebration of your favourite player's goal. Weakest = drinks.",
+    "{p} names a year; everyone shares their biggest memory from it. No memory = drink.",
+    "Vote: who's aged like fine wine since school? They take a smug sip; everyone else drinks.",
+    "Everyone who's missed a goal because they were getting another drink — drink, ironic.",
+    "{p}: pick who'd win in a fight, then who'd win in an argument. They each react with a sip.",
+    "Group challenge: keep a beat going around the circle. Whoever breaks rhythm drinks.",
+    "Most likely to marry someone the group hasn't met yet — point on 3. Top vote drinks.",
+    "Everyone whose favourite player has retired — drink to the legends.",
+    "{p}: give everyone a football nickname based on how they play life. Group veto = you drink.",
+    "Vote: who's the funniest in the group, no debate. They drink a victory sip.",
+    "Everyone who's worn a jersey to a bar — drink to the commitment.",
+    "{p} starts a 'we're not leaving till...' challenge. Everyone drinks to it.",
+    "Most likely to cause the group's next big scandal — point on 3. Top vote drinks.",
+    "Everyone name the last thing that made you genuinely laugh. Lame = drink.",
+    "{p}: pick the two most similar people here. They both drink to the resemblance.",
+    "Vote: who'd survive longest without their phone? Loser drinks.",
+    "Everyone who's bet money on a match — win or lose, drink.",
+    "{p} picks a song; everyone sings the next line or drinks.",
+    "Group toast to absent friends who should've been here tonight. Everyone drinks.",
+    "Most likely to get a tattoo they'll regret — point on 3. Top vote drinks.",
+    "Everyone share your most controversial football opinion. Boos from the group = drink.",
+    "{p}: rank everyone by who'd be the best wingman. Last place drinks.",
+    "Vote: biggest drama queen tonight. They drink (dramatically, obviously).",
+    "Everyone who's fallen asleep during a match — drink, fake fan.",
+    "{p} names an emoji; everyone shows their last text with it or drinks.",
+    "Most likely to become a parent first — point on 3. Top vote drinks responsibly.",
+    "Everyone do your best teammate-celebration with the person next to you. Refuse = both drink.",
+    "{p}: pick who'd be the worst to share a flat with. They drink or defend their habits.",
+    "Vote: who's changed the least since you all met? They drink to consistency.",
+    "Everyone who's screamed at a TV this season — drink to your blood pressure.",
+    "{p} picks 'truth or group shot' for the person on their left.",
+    "Group challenge: everyone says one genuinely nice thing about {p}. Skip = you drink.",
+    "Most likely to text the group at 4am with chaos — point on 3. Top vote drinks.",
+    "Everyone name your all-time favourite goal. Can't decide = drink.",
+    "{p}: split the room into 'would survive an apocalypse' vs 'wouldn't'. Wouldn't team drinks.",
+    "Vote: who's the secret softie? They drink and admit one feeling.",
+    "Everyone who's lied about watching a match they didn't — drink, caught.",
+    "{p} toasts to the dumbest decision this group has ever made together. Everyone drinks.",
+    "Most likely to go viral one day — point on 3. Top vote drinks to the fame.",
+  ],
+  rule:[
+    "New rule: no first names — nicknames only. Break it = 1 sip. (set by {p})",
+    "New rule: point with elbows, never fingers. Caught = drink. (set by {p})",
+    "New rule: every time someone says 'traffic', everyone sips. (set by {p})",
+    "New rule: {p} is the Bartender — everyone must say 'cheers' before drinking, or {p} drinks.",
+    "New rule: no phones on the table. Caught scrolling = 2 sips. (set by {p})",
+    "New rule: end every sentence with 'maccha' till the game ends. Forget = sip. (set by {p})",
+    "New rule: nobody can say 'drink' — say 'hydrate'. Slip = 1 sip. (set by {p})",
+    "New rule: {p} picks one person who must be addressed as 'boss' for 3 rounds.",
+    "New rule: no saying anyone's name. Slip up = drink. (set by {p})",
+    "New rule: every sip must be done with your non-dominant hand. Slip = extra sip. (set by {p})",
+    "New rule: no laughing till someone lands on CHAOS. Caught smiling = sip. (set by {p})",
+    "New rule: before drinking, everyone must say 'cheers' in a different language. Repeat = drink. (set by {p})",
+    "New rule: {p} is the DJ — anyone who talks over 'their song' drinks.",
+    "New rule: no swearing for the rest of the game. Slip = 1 sip. (set by {p})",
+    "New rule: everyone must answer to a football player's name now. Forget = drink. (set by {p})",
+    "New rule: no pointing — gesture with your chin only. Caught pointing = sip. (set by {p})",
+    "New rule: every time someone checks their phone, they sip. (set by {p})",
+    "New rule: {p} picks a 'forbidden word'. Anyone who says it drinks.",
+    "New rule: all toasts must rhyme from now on. Fail to rhyme = drink. (set by {p})",
+    "New rule: nobody can sit with their legs crossed. Caught = sip. (set by {p})",
+    "New rule: every sentence must start with 'honestly'. Forget = sip. (set by {p})",
+    "New rule: {p} is the King/Queen — bow before addressing them or drink.",
+    "New rule: no using the word 'I' — talk in third person. Slip = drink. (set by {p})",
+    "New rule: every time someone says 'bro' or 'maccha', they sip. (set by {p})",
+    "New rule: the last person to touch their nose when {p} does, drinks. {p} can trigger it anytime.",
+    "New rule: no one can say 'no' — find another way. Slip = sip. (set by {p})",
+    "New rule: everyone must compliment the person who just drank, or drink themselves. (set by {p})",
+    "New rule: phones go face-down in the middle. First to pick theirs up drinks. (set by {p})",
+    "New rule: {p} assigns everyone an accent they must keep till the game ends. Drop it = sip.",
+    "New rule: no leaning back — sit up straight like you're at a Indus assembly. Caught slouching = sip. (set by {p})",
+    "New rule: every drink must be preceded by a dramatic 'to us!'. Forget = extra sip. (set by {p})",
+    "New rule: nobody can use the word 'drink' OR 'sip' — get creative. Slip = drink. (set by {p})",
+    "New rule: {p} can call 'freeze' once before their next turn — last to freeze drinks.",
+    "New rule: everyone must hum instead of saying 'yes'. Forget = sip. (set by {p})",
+    "New rule: no talking about work. Slip into shop-talk = drink. (set by {p})",
+    "New rule: the person to {p}'s right is their 'cup-bearer' and must cheers every drink with them.",
+    "New rule: every laugh costs a sip until someone lands on a DRINK tile. (set by {p})",
+    "New rule: everyone speaks only in movie quotes till their next turn. Fail = sip. (set by {p})",
+    "New rule: {p} picks a gesture; everyone must do it before drinking. Forget = extra sip.",
+    "New rule: no negativity — anyone who complains drinks. (set by {p})",
+    "New rule: everyone must call {p} by a royal title for 3 rounds. Slip = sip.",
+    "New rule: the group has a secret word — when {p} says it, last to drink loses and drinks twice.",
+    "New rule: no checking the time. Caught looking at a clock or phone time = sip. (set by {p})",
+    "New rule: every sip is a group sip — when one drinks, the person on their left joins. (set by {p})",
+  ],
+  drink:[
+    "{p}, take 2 sips. No reason. You exist, you drink.",
+    "{p}, pick someone to drink with you. Cheers!",
+    "🥃 SHOT TILE — {p} takes a shot (or 4 big sips).",
+    "{p}, hand out 3 sips to anyone you want.",
+    "{p}, you and {o} both drink. Solidarity.",
+    "{p}, drink for every vowel in your full name. Good luck.",
+    "{p}, give 2 sips to the person on your left, take 1 yourself.",
+    "{p}, everyone clink glasses with you, then you all take 1 together.",
+    "{p}, take a sip for every letter in the name of your first crush.",
+    "{p}, choose: 3 sips now, or pass 4 sips around the table however you like.",
+    "{p}, drink with whoever you'd want as a teammate in a 2v2. They drink too.",
+    "{p}, the youngest-at-heart drinks with you. You decide who that is.",
+    "{p}, take 1 sip for every match you've watched this week (max 5).",
+    "{p}, toast to your favourite footballer and take a sip in their honour.",
+    "{p}, give 1 sip each to the two quietest people right now.",
+    "{p} and {o}, race to take 2 sips. Loser takes 1 more.",
+    "{p}, everyone who's wearing black drinks. Nobody? You take 3.",
+    "{p}, pick the person with the best vibe tonight — you both drink.",
+    "{p}, take a sip, then nominate the next person to take two.",
+    "{p}, drink with the last person who made you laugh.",
+    "{p}, sip for every vowel in the name of your favourite club.",
+    "{p}, everyone points at who they'd share a drink with — most-pointed and {p} drink together.",
+    "{p}, take 2 sips and give the gift of 2 sips to {o}.",
+    "{p}, anyone who's checked their phone since your last turn drinks. Nobody? You drink.",
+    "{p}, cheers the person across from you and both take a sip.",
+    "{p}, take a victory sip — you've earned it just for surviving this tile.",
+    "{p}, give 3 sips total, split however you want, but you can't give them all to one person.",
+    "{p}, drink with everyone who's older sibling energy. The rest watch.",
+    "{p}, take 1 sip, then start a chain — each person sips and taps the next.",
+    "{p}, pick a number 1-3, that's your sips, then pass the same number to {o}.",
+    "{p}, everyone who's ever crashed at your place drinks with you.",
+    "{p}, sip for every group trip you've actually been on with these people.",
+    "{p}, toast to the host and take a sip; the host takes two.",
+    "{p}, drink with the person you've known the longest in this room.",
+  ],
+  crazy:[
+    "{p}, FINISH your entire drink. Right now. No negotiation.",
+    "{p}, take a sip for EVERY person in the room — then one more for luck.",
+    "{p}, name every person you've ever kissed, in order. Miss one = finish your drink.",
+    "{p}, who in this room have you had a crush on at some point? Name them or finish your drink.",
+    "{p}, read out the last text in your DMs to the room. Refuse = finish your drink.",
+    "{p}, text your ex 'hey' right now — or finish your entire drink.",
+    "{p}, hand your phone to {o} for a 60-second DM tour. Or finish your drink.",
+    "{p}, 30 pushups OR finish your drink. Choose your pain.",
+    "{p}, the group votes your most toxic trait out loud. Disagree? Finish your drink.",
+    "Everyone drinks. Then {p} FINISHES their drink, because chaos chose you.",
+    "{p}, hold your breath while the group counts. Fold = finish your drink. Reach 30 = hand your drink to someone.",
+    "{p}, call a random contact and sing happy birthday on speaker. Refuse = finish your drink.",
+    "{p}, let the group pick a new nickname for you for the whole night. Refuse = finish your drink.",
+    "{p}, do the next two dares as well as your own — or finish your drink right now.",
+    "{p}, confess the wildest thing you've done that no one here knows. Chicken out = finish your drink.",
+    "{p}, pick someone to finish their drink with you. Misery loves company.",
+    "{p}, reveal the contact name you've saved {o} under. Refuse = finish your drink.",
+    "{p}, let the group post anything they want on your story for 5 minutes. Refuse = finish your drink.",
+    "{p}, call the last person you texted and tell them you miss them. Refuse = finish your drink.",
+    "{p}, show the group your screen time AND your most-used app's history vibe. Refuse = finish your drink.",
+    "{p}, do an honest 30-second roast of yourself. Hold back = finish your drink.",
+    "{p}, let {o} go through your DMs for 30 seconds. Refuse = finish your drink.",
+    "{p}, confess who in this room you'd date if you had to pick someone. Dodge it = finish your drink.",
+    "{p}, read your last 3 Google searches out loud. Refuse = finish your drink.",
+    "{p}, hand your unlocked phone to the person on your right for one minute. Refuse = finish your drink.",
+    "{p}, name every person you've kissed in the last year out loud. Miss/refuse = finish your drink.",
+    "{p}, post the most unflattering selfie in your camera roll. Refuse = finish your drink.",
+    "{p}, voice-note your ex 'hey, random, but I was thinking about you'. Refuse = finish your drink.",
+    "{p}, let the group choose your phone wallpaper for the next week. Refuse = finish your drink.",
+    "{p}, tell the group the pettiest reason you've ever ended things with someone. Lie = finish your drink.",
+    "{p}, do your most honest impression of someone in this room — they pick if it's accurate. Chicken out = finish your drink.",
+    "{p}, confess the biggest lie you've told this group. Refuse = finish your drink.",
+    "{p}, let {o} send one message from your phone to anyone they choose. Refuse = finish your drink.",
+    "{p}, share the story behind your most-regretted night out. Skip = finish your drink.",
+    "{p}, everyone drinks — then you finish yours, because chaos has spoken.",
+    "{p}, reveal your 'type' and which person here fits it best. Dodge = finish your drink.",
+    "{p}, let the group ask you ONE question you must answer 100% honestly. Refuse = finish your drink.",
+    "{p}, text your crush/partner something bold right now. Refuse = finish your drink.",
+    "{p}, show the last 5 people you texted to the group. Refuse = finish your drink.",
+    "{p}, do a brutally honest 'state of my life' update in 30 seconds. Sugarcoat it = finish your drink.",
+    "{p}, let {o} read your most recent note/reminder out loud. Refuse = finish your drink.",
+    "{p}, name the person here you've judged the hardest and why. Refuse = finish your drink.",
+    "{p}, reveal a secret about yourself nobody here knows. Refuse = finish your drink.",
+    "{p}, call a parent and tell them you're having a great night (no swearing). Refuse = finish your drink.",
+    "{p}, let the group rename you for the rest of the night. Refuse = finish your drink.",
+    "{p}, show the group the last thing you bought online. Refuse = finish your drink.",
+    "{p}, confess your most embarrassing drunk moment with this exact group. Skip = finish your drink.",
+    "{p}, reveal who you'd save first if everyone here was in danger. Dodge = finish your drink.",
+    "{p}, do 20 pushups OR finish your drink. No half measures.",
+    "{p}, let {o} decide: you finish your drink, or you do whatever dare they invent right now.",
+    "{p}, share the most recent thing that made you cry. Lie = finish your drink.",
+    "{p}, hand someone your phone and let them text the group chat as you. Refuse = finish your drink.",
+    "{p}, tell the group your honest first impression of each person here. Skip anyone = finish your drink.",
+    "{p}, reveal the wildest thing on your bucket list. Too tame? Group decides = finish your drink.",
+    "{p}, let the group pick a song you must sing one verse of. Refuse = finish your drink.",
+    "{p}, confess the biggest crush you've ever had on someone in this friend circle's history. Dodge = finish your drink.",
+    "{p}, show your most recent payment/transaction to the group. Refuse = finish your drink.",
+    "{p}, do an honest ranking of everyone here by who you'd trust with a secret. Refuse = finish your drink.",
+    "{p}, reveal the last screenshot you took. Refuse = finish your drink.",
+    "{p}, let {o} ask you anything about your love life and answer honestly. Dodge = finish your drink.",
+    "{p}, admit the most childish thing you still do. Hide it = finish your drink.",
+    "{p}, call the 5th contact in your recent calls and chat for 20 seconds. Refuse = finish your drink.",
+    "{p}, reveal what you really think the group's biggest flaw is. Refuse = finish your drink.",
+    "{p}, show the group your camera roll from exactly one year ago. Refuse = finish your drink.",
+    "{p}, confess a time you let someone in this room down. Skip = finish your drink.",
+    "{p}, let the group set a dare you must complete before your next turn, or finish your drink now.",
+    "{p}, reveal the most you've ever spent in one night out. Lie = finish your drink.",
+    "{p}, do your most genuine apology to someone here for something real. Refuse = finish your drink.",
+    "{p}, name the person here you'd want at your wedding head table — and one you wouldn't. Dodge = finish your drink.",
+    "{p}, share the most embarrassing thing in your liked posts. Refuse = finish your drink.",
+    "{p}, tell the group the dream you're most scared to chase. Hide it = finish your drink.",
+    "{p}, let {o} look at your search history for 10 seconds. Refuse = finish your drink.",
+    "{p}, reveal who in this room you'd swap lives with and what you'd change. Dodge = finish your drink.",
+    "{p}, do an honest confession booth — one thing you've never admitted to this group. Refuse = finish your drink.",
+    "{p}, show the group the last meme you saved AND who you sent it to. Refuse = finish your drink.",
+    "{p}, name the friendship in this room you'd fight hardest to keep. Skip = finish your drink.",
+    "{p}, reveal the boldest thing you've ever done for love. Too soft = finish your drink.",
+    "{p}, let the group pick a truth question — answer it raw and honest. Refuse = finish your drink.",
+    "{p}, confess the thing you most want to change about your life right now. Hide it = finish your drink.",
+  ],
+  duel:[
+    "Rock-paper-scissors, best of 3. Loser drinks twice.",
+    "Staring contest — first to blink or laugh drinks.",
+    "Thumb war, 10 seconds. Loser drinks.",
+    "Arm wrestle. Loser finishes their drink.",
+    "Say the alphabet backwards — fastest wins, loser drinks twice.",
+    "Race to finish whatever's in your glass. Loser refills and drinks again.",
+    "Name 5 footballers in 10 seconds, no repeats. Whoever fails drinks.",
+    "The group votes who's funnier. Loser drinks.",
+    "First to make the other laugh wins. Loser drinks twice.",
+    "Whoever has the more embarrassing most-recent photo drinks.",
+    "First to name 5 football clubs wins. Loser drinks twice.",
+    "Hold eye contact while saying 'I love you' — first to laugh drinks.",
+    "Best out of 3 thumb wrestles. Loser finishes their drink.",
+    "Whoever can hold a plank longer wins. Loser drinks twice.",
+    "Name Bangalore areas back and forth. First to repeat or blank drinks.",
+    "Compliment battle — take turns complimenting each other. First to hesitate drinks.",
+    "Whoever's phone has more unread notifications drinks.",
+    "Arm wrestle, left hand. Loser drinks twice.",
+    "Count to 20 alternating numbers; whoever messes up drinks.",
+    "Whoever last cried at a movie wins (admit it). The other drinks.",
+    "Sing the same song line at once — whoever's worse, the group decides, drinks.",
+    "Whoever has more apps open right now drinks.",
+    "First to make the other smile wins. Loser drinks twice.",
+    "Whoever's screen time is higher today finishes their drink.",
+    "Insult battle, but only compliments disguised as insults. First to break drinks.",
+    "Whoever can name more of each other's exes wins. The other drinks.",
+    "Mirror game — one leads, one copies. First to break the mirror drinks.",
+    "Whoever has the older photo of the two of you together drinks (out of joy).",
+    "Quick-fire 'would you rather' — first to hesitate drinks.",
+    "Whoever's team is lower in the league table drinks.",
+    "Hold your breath together; first to exhale drinks.",
+    "Whoever can do a better player celebration wins. Loser drinks, group judges.",
+    "Name movies A to Z, alternating. First to blank drinks.",
+    "Whoever has texted the other more recently wins. The other drinks twice.",
+    "Rap battle, 4 bars each. Group picks the loser, who drinks.",
+    "Whoever blinks first in a 15-second stare drinks twice.",
+    "Slap-hands reflex game; whoever flinches or misses drinks.",
+    "Whoever has the more chaotic camera roll (last photo decides) drinks.",
+    "Speak in an accent; first to drop it drinks.",
+    "Whoever can list more players from one team wins. Loser finishes their drink.",
+    "Tell the same embarrassing story about each other — group votes the worse one, they drink.",
+    "Whoever's been single longer drinks (or whoever's been coupled longer — you pick).",
+    "Do a dance-off, 10 seconds each. Group picks the loser, who drinks twice.",
+    "Whoever can keep a straight face while the other tries to crack them — loser drinks.",
+    "Alphabet backwards race; slower one drinks twice.",
+    "Whoever's most likely to text their ex tonight (group decides) drinks.",
+    "Best impression of the other person — group judges, loser drinks.",
+    "Whoever has the more embarrassing search in their history (admit honestly) drinks.",
+    "Quick maths: group gives a sum, first wrong answer drinks. (Keep it off-screen.)",
+    "Whoever can name more songs by one artist wins. Loser finishes their drink.",
+  ],
+  paranoia:[
+    "Who in this room is most likely to text their ex tonight?",
+    "Who's most likely to get kicked out of a bar?",
+    "Who here would survive the longest in a zombie apocalypse?",
+    "Who's most likely to get rich and forget the rest of us?",
+    "Who would you trust the least with a secret?",
+    "Who do you think is the best kisser in the room?",
+    "Who's most likely to cry first tonight?",
+    "Who here has the messiest love life?",
+    "Who's most likely to start a fight on a night out?",
+    "Who would you take with you to a deserted island?",
+    "Who's most likely to ghost the group chat for a month?",
+    "Who here is secretly the most jealous?",
+    "Who's most likely to get married first?",
+    "Who's the biggest flirt in this room?",
+    "Who's most likely to end up low-key famous?",
+    "Who's most likely to drunk-text someone they absolutely shouldn't?",
+    "Who here gives the worst relationship advice?",
+    "Who's most likely to be late to their own wedding?",
+    "Who in this room is the best liar?",
+    "Who's most likely to do something tonight they'll regret tomorrow?",
+    "Who would you call first to bail you out of trouble?",
+    "Who's the most attractive person in the room right now?",
+    "Who's most likely to fall asleep first tonight?",
+    "Who here is the biggest drama magnet?",
+    "Who's most likely to become an influencer?",
+    "Who's most likely to cheat in a game of cards?",
+    "Who here would make the best partner?",
+    "Who's most likely to be in a secret relationship right now?",
+    "Who's the most likely to get a tattoo tonight?",
+    "Who here has the biggest ego?",
+    "Who's most likely to move abroad and never come back?",
+    "Who's most likely to embarrass themselves on the dance floor?",
+    "Who here is the secret softie?",
+    "Who's most likely to slide into a stranger's DMs?",
+    "Who would survive the longest without their phone?",
+    "Who's most likely to become a parent first?",
+    "Who's the funniest person in the room?",
+    "Who in this room would you swap lives with?",
+    "Who's most likely to spill a secret after two drinks?",
+    "Who's most likely to plan a trip and then bail last minute?",
+    "Who here is most likely to fall in love on holiday?",
+    "Who would you least want to be stuck in traffic with?",
+    "Who's most likely to win an argument they're completely wrong about?",
+    "Who's the biggest glory-hunter football fan here?",
+    "Who's most likely to cry over a football result?",
+    "Who here is most likely to be secretly in love with someone in this room?",
+    "Who would you want on your team in a bar fight?",
+    "Who's most likely to send a 3am 'you up?' text?",
+    "Who here is the most high-maintenance?",
+    "Who's most likely to end up running the group one day?",
+  ],
+};
+
+const META = {
+  start:{e:'🚀',l:'START',c:'#00ffa3',name:'START'},
+  finish:{e:'🏁',l:'FINISH',c:'#ffe66d',name:'FINISH'},
+  dare:{e:'🔥',l:'DARE',c:'#ff2e63',name:'DARE'},
+  truth:{e:'💬',l:'TRUTH',c:'#00e5ff',name:'TRUTH'},
+  bangalore:{e:'🏙️',l:'BLR',c:'#ffd23f',name:'BANGALORE'},
+  group:{e:'👥',l:'GROUP',c:'#9d6bff',name:'GROUP'},
+  rule:{e:'📜',l:'RULE',c:'#39ff14',name:'NEW RULE'},
+  drink:{e:'🍻',l:'DRINK',c:'#ff8c1a',name:'DRINK'},
+  crazy:{e:'💥',l:'CHAOS',c:'#ff0040',name:'💥 CHAOS 💥'},
+  forward:{e:'⚡',l:'BOOST',c:'#ff32e6',name:'LUCKY BREAK'},
+  back:{e:'🚧',l:'JAM',c:'#ff32e6',name:'TRAFFIC JAM'},
+  swap:{e:'🔄',l:'SWAP',c:'#ff32e6',name:'SWAP'},
+  skip:{e:'💤',l:'SKIP',c:'#ff32e6',name:'HUNGOVER'},
+  powerup:{e:'🎁',l:'POWER',c:'#ffd23f',name:'POWER-UP'},
+  duel:{e:'⚔️',l:'DUEL',c:'#ff2e63',name:'⚔️ DUEL ⚔️'},
+  shield:{e:'🛡️',l:'SHIELD',c:'#00e5ff',name:'SHIELDED'},
+  paranoia:{e:'😈',l:'PARA',c:'#b14dff',name:'😈 PARANOIA 😈'},
+};
+
+const POWERUPS = [
+  {e:'🛡️',n:'Shield',d:'Negate the next DARE or CHAOS you land on.',target:false,kind:'shield'},
+  {e:'⚡',n:'Teleport',d:'Jump ahead 4 tiles right now.',target:false,kind:'teleport'},
+  {e:'🔀',n:'Swap Fate',d:'Swap board spots with any player.',target:true,kind:'swap'},
+  {e:'🍺',n:'Force Sips',d:'Pick a player — they take 3 sips.',target:true,kind:'force'},
+  {e:'🎯',n:'Pass the Pain',d:'Your next tile task is done by the player on your left.',target:false,kind:'pass'},
+  {e:'👑',n:'Kingmaker',d:'Hand out 5 sips however you like.',target:false,kind:'king'},
+];
+
+/* merge custom content */
+DECK.dare=DECK.dare.concat(CUSTOM.dares||[]);
+DECK.truth=DECK.truth.concat(CUSTOM.truths||[]);
+DECK.bangalore=DECK.bangalore.concat(CUSTOM.bangalore||[]);
+DECK.group=DECK.group.concat(CUSTOM.group||[]);
+DECK.rule=DECK.rule.concat(CUSTOM.rules||[]);
+DECK.crazy=DECK.crazy.concat(CUSTOM.crazy||[]);
+DECK.paranoia=DECK.paranoia.concat(CUSTOM.paranoia||[]);
+
+/* ---- no-repeat drawers: shuffle each category, deal until empty, then reshuffle ---- */
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+const drawers={};
+function buildDrawers(){
+  for(const k in DECK){
+    let queue=[];
+    let last=null;
+    drawers[k]=function(){
+      if(queue.length===0){
+        queue=shuffle([...DECK[k]]);
+        // avoid immediate repeat across reshuffle
+        if(queue.length>1 && queue[queue.length-1]===last){[queue[0],queue[queue.length-1]]=[queue[queue.length-1],queue[0]];}
+      }
+      last=queue.pop();
+      return last;
+    };
+  }
+}
+function draw(type){return drawers[type]();}
+
+/* ---------------- BOARD ---------------- */
+const COLS=9, ROWS=6, N=COLS*ROWS; // 54 tiles
+let typeMap=[];
+const INTENSITY={
+  chill:{crazy:0,powerup:3,paranoia:2,cycle:['truth','bangalore','group','drink','truth','rule','bangalore','group','drink','truth','dare','bangalore','group','drink','rule']},
+  wild:{crazy:2,powerup:2,paranoia:2,cycle:['dare','truth','bangalore','drink','group','dare','truth','bangalore','rule','drink','truth','dare','bangalore','group','drink']},
+  unhinged:{crazy:4,powerup:2,paranoia:3,cycle:['dare','crazy','truth','drink','dare','group','crazy','dare','rule','drink','dare','truth','crazy','dare','drink']},
+};
+function buildTypeMap(){
+  typeMap=new Array(N);
+  typeMap[0]='start'; typeMap[N-1]='finish';
+  const mv={7:'forward',14:'back',24:'swap',29:'skip',33:'forward',43:'back',48:'skip',51:'swap'};
+  const cfg=INTENSITY[intensity];
+  const extraSlots=[5,11,19,27,38,46,9,17,35,41];
+  const assign={}; let si=0;
+  for(let c=0;c<cfg.crazy;c++)assign[extraSlots[si++]]='crazy';
+  for(let p=0;p<cfg.powerup;p++)assign[extraSlots[si++]]='powerup';
+  for(let q=0;q<(cfg.paranoia||0);q++)assign[extraSlots[si++]]='paranoia';
+  let ci=0;
+  for(let i=1;i<N-1;i++){
+    if(mv[i]) typeMap[i]=mv[i];
+    else if(assign[i]) typeMap[i]=assign[i];
+    else { typeMap[i]=cfg.cycle[ci%cfg.cycle.length]; ci++; }
+  }
+}
+let SPIRAL=[];
+function buildSpiral(){
+  SPIRAL=[];let top=0,bottom=ROWS-1,left=0,right=COLS-1;
+  while(top<=bottom&&left<=right){
+    for(let c=left;c<=right;c++)SPIRAL.push([top,c]);
+    for(let r=top+1;r<=bottom;r++)SPIRAL.push([r,right]);
+    if(top<bottom)for(let c=right-1;c>=left;c--)SPIRAL.push([bottom,c]);
+    if(left<right)for(let r=bottom-1;r>top;r--)SPIRAL.push([r,left]);
+    top++;bottom--;left++;right--;
+  }
+}
+function gridPos(i){const[r,c]=SPIRAL[i];return{row:r+1,col:c+1};}
+
+/* ---------------- STATE ---------------- */
+let count=6;
+let charSel=[0,1,2,3,4,5];
+let intensity='wild';
+let players=[];
+let curIdx=0;
+let finishOrder=[];
+let busy=false;
+
+/* ---------------- SETUP UI ---------------- */
+function renderSetup(){
+  const box=document.getElementById('nameRows');
+  const vals=[];
+  for(let i=0;i<6;i++){const el=document.getElementById('nm'+i);vals[i]=el?el.value:'';}
+  box.innerHTML='';
+  for(let i=0;i<count;i++){
+    const row=document.createElement('div'); row.className='prow';
+    const val=vals[i]||'';
+    const ch=CHARACTERS[charSel[i]];
+    row.innerHTML=`<span class="dot" style="color:${PLAYER_COLORS[i]};background:${PLAYER_COLORS[i]}"></span>
+      <button class="charbtn" id="ch${i}" onclick="cycleChar(${i})" title="tap to change character">
+        <span class="cemoji">${ch.e}</span><span>${ch.n}</span></button>
+      <input type="text" id="nm${i}" placeholder="${DEFAULT_NAMES[i]}" maxlength="14" value="${val.replace(/"/g,'&quot;')}" />`;
+    box.appendChild(row);
+  }
+  document.getElementById('countLabel').textContent=count;
+  document.getElementById('minus').disabled=(count<=4);
+  document.getElementById('plus').disabled=(count>=6);
+}
+function changeCount(d){count=Math.max(4,Math.min(6,count+d));renderSetup();}
+function setIntensity(v){intensity=v;document.querySelectorAll('#intSeg button').forEach(b=>b.classList.toggle('on',b.dataset.i===v));}
+function cycleChar(i){
+  const used=charSel.filter((_,k)=>k!==i);
+  let c=charSel[i];
+  do{c=(c+1)%CHARACTERS.length;}while(used.includes(c));
+  charSel[i]=c;renderSetup();
+}
+
+function startGame(){
+  players=[];
+  for(let i=0;i<count;i++){
+    const v=document.getElementById('nm'+i).value.trim();
+    players.push({name:v||DEFAULT_NAMES[i],color:PLAYER_COLORS[i],char:CHARACTERS[charSel[i]],pos:0,finished:false,skipNext:false,inventory:[],shield:false,passNext:false,drinks:0});
+  }
+  curIdx=0;finishOrder=[];busy=false;
+  buildSpiral();buildTypeMap();buildDrawers();
+  document.getElementById('setup').classList.add('hidden');
+  document.getElementById('game').classList.remove('hidden');
+  document.getElementById('rulesList').innerHTML='<li class="empty">No rules yet… land on a 📜 tile.</li>';
+  renderBoard();renderPlayers();renderTurn();
+}
+function returnHome(){
+  document.querySelectorAll('.overlay').forEach(o=>o.remove());
+  busy=false;
+  document.getElementById('game').classList.add('hidden');
+  document.getElementById('setup').classList.remove('hidden');
+}
+
+/* ---------------- BOARD RENDER ---------------- */
+function renderBoard(){
+  const b=document.getElementById('board'); b.innerHTML='';
+  for(let i=0;i<N;i++){
+    const t=typeMap[i],m=META[t];const{row,col}=gridPos(i);
+    const cell=document.createElement('div');
+    cell.className='tile'+((t==='start'||t==='finish'||t==='crazy'||t==='powerup'||t==='paranoia')?' big':'');
+    cell.style.setProperty('--tc',m.c);
+    cell.style.gridRow=row;cell.style.gridColumn=col;cell.id='tile'+i;
+    cell.innerHTML=`<span class="num">${(i===0||i===N-1)?'':i}</span>
+      <span class="ico">${m.e}</span><span class="lab">${m.l}</span>
+      <div class="toks" id="toks${i}"></div>`;
+    b.appendChild(cell);
+  }
+  paintTokens();
+}
+function paintTokens(){
+  for(let i=0;i<N;i++){const el=document.getElementById('toks'+i);if(el)el.innerHTML='';document.getElementById('tile'+i).classList.remove('cur');}
+  players.forEach(p=>{
+    const el=document.getElementById('toks'+p.pos);
+    if(el){const d=document.createElement('div');d.className='tok';
+      d.style.color=p.color;d.textContent=p.char.e;d.title=p.name+' ('+p.char.n+')';el.appendChild(d);}
+  });
+  const cp=players[curIdx];
+  if(cp&&!cp.finished)document.getElementById('tile'+cp.pos).classList.add('cur');
+}
+function maxDrinker(){let mi=-1,mx=0;players.forEach((p,i)=>{if(p.drinks>mx){mx=p.drinks;mi=i;}});return mi;}
+function addDrink(i,n){players[i].drinks+=n;renderPlayers();}
+function renderPlayers(){
+  const pl=document.getElementById('plist');pl.innerHTML='';
+  const top=maxDrinker();
+  players.forEach((p,i)=>{
+    const place=finishOrder.indexOf(i);
+    const row=document.createElement('div');
+    row.className='pl'+(p.finished?' done':'')+(i===curIdx?' active':'');
+    row.style.color=(i===curIdx)?p.color:'';
+    let chips='';
+    p.inventory.forEach((c,ci)=>{chips+=`<button class="chip" title="${c.n}: ${c.d}" onclick="playCard(${i},${ci})">${c.e}</button>`;});
+    if(p.shield)chips+=`<span class="chip act" title="Shield active — negates next dare/chaos">🛡️</span>`;
+    row.innerHTML=`<div class="plmain">
+        <span class="dot" style="background:${p.color};color:${p.color}"></span>
+        <span class="pname">${p.char.e} ${p.name}${(top===i?' 👑':'')}</span>
+        <button class="sip" onclick="addDrink(${i},1)" title="tap when they take a sip">🍺 ${p.drinks}</button>
+        <span class="pos">${p.finished?('#'+(place+1)+'🏁'):('t'+p.pos)}</span>
+      </div>${chips?`<div class="chips">${chips}</div>`:''}`;
+    pl.appendChild(row);
+  });
+}
+function renderTurn(){
+  const p=players[curIdx];
+  const dot=document.getElementById('turnDot');
+  dot.style.background=p.color;dot.style.color=p.color;
+  document.getElementById('turnWho').textContent=p.char.e+' '+p.name;
+}
+
+/* ---------------- TEXT FILL ---------------- */
+function pick(a){return a[Math.floor(Math.random()*a.length)];}
+function randomOther(){const o=players.map((p,i)=>i).filter(i=>i!==curIdx);return players[pick(o)];}
+function fill(s){
+  return s.replace(/\{p\}/g,players[curIdx].name)
+          .replace(/\{o\}/g,randomOther().name)
+          .replace(/\{elder\}/g,pick(players).name)
+          .replace(/\{anyone\}/g,pick(players).name);
+}
+
+/* ---------------- DICE / TURN ---------------- */
+function roll(){
+  if(busy)return; busy=true;
+  document.getElementById('rollBtn').disabled=true;
+  const dice=document.getElementById('dice');let ticks=0;
+  const anim=setInterval(()=>{
+    dice.textContent=(1+Math.floor(Math.random()*6));
+    if(++ticks>=10){clearInterval(anim);const val=1+Math.floor(Math.random()*6);dice.textContent=val;moveCurrent(val);}
+  },60);
+}
+function moveCurrent(steps){
+  const p=players[curIdx];const target=Math.min(p.pos+steps,N-1);
+  const step=()=>{if(p.pos<target){p.pos++;paintTokens();setTimeout(step,140);}else{renderPlayers();landOn(p.pos);}};
+  step();
+}
+function landOn(i){
+  const t=typeMap[i];
+  if(i===N-1){
+    if(!players[curIdx].finished){players[curIdx].finished=true;finishOrder.push(curIdx);}
+    renderPlayers();
+    const place=finishOrder.indexOf(curIdx)+1;
+    const ord=['1st','2nd','3rd','4th','5th','6th'][place-1];
+    fireConfetti(false);
+    showCard('finish',`🏁 ${players[curIdx].name} reaches FINISH in ${ord} place! Everyone drinks to them.`,'');
+    return;
+  }
+  if(t==='forward'){const p=players[curIdx];p.pos=Math.min(p.pos+3,N-1);paintTokens();renderPlayers();
+    showCard('forward',fill("⚡ Free auto, green lights all the way — {p} zooms ahead 3 tiles! Victory sip."),'Moved to tile '+p.pos);return;}
+  if(t==='back'){const p=players[curIdx];p.pos=Math.max(p.pos-3,0);paintTokens();renderPlayers();
+    showCard('back',fill("🚧 Stuck at Silk Board — {p} crawls back 3 tiles. Drink away the rage (2 sips)."),'Moved to tile '+p.pos);return;}
+  if(t==='swap'){const o=randomOther();const p=players[curIdx];const tmp=p.pos;p.pos=o.pos;o.pos=tmp;paintTokens();renderPlayers();
+    showCard('swap',`🔄 ${p.name} swaps places with ${o.name}! Both drink to the chaos.`,'');return;}
+  if(t==='skip'){players[curIdx].skipNext=true;
+    showCard('skip',fill("💤 Too hungover — {p} loses their next turn. Drink 1 and sit one out."),'');return;}
+  if(t==='powerup'){const c={...pick(POWERUPS)};players[curIdx].inventory.push(c);renderPlayers();
+    showCard('powerup',`🎁 ${players[curIdx].name} grabbed a power-up: ${c.e} ${c.n} — ${c.d} Play it from the Players panel whenever you like.`,'');return;}
+  if(t==='paranoia'){
+    let ai=curIdx;
+    for(let k=1;k<players.length;k++){const idx=(curIdx+k)%players.length;if(!players[idx].finished){ai=idx;break;}}
+    showParanoia(fill(draw('paranoia')),players[curIdx].name,players[ai].name);return;}
+  if((t==='dare'||t==='crazy')&&players[curIdx].shield){players[curIdx].shield=false;renderPlayers();
+    showCard('shield',`🛡️ ${players[curIdx].name}'s Shield absorbs the ${t==='crazy'?'CHAOS':'dare'}! No drink, no dare — walk free.`,'');return;}
+  const occ=players.filter((p,k)=>k!==curIdx&&!p.finished&&p.pos===i);
+  if(occ.length){const opp=pick(occ);
+    showCard('duel',`${players[curIdx].name} vs ${opp.name}: ${draw('duel')}`,'They landed on the same tile!');return;}
+  let text,meta='';
+  if(t==='rule'){text=fill(draw('rule'));addRule(text);}
+  else {text=fill(draw(t));if(t==='drink')addDrink(curIdx,2);if(t==='crazy')addDrink(curIdx,4);}
+  if(players[curIdx].passNext){players[curIdx].passNext=false;
+    const left=players[(curIdx-1+players.length)%players.length];
+    meta=`🎯 Pass the Pain — ${left.name} does this instead of ${players[curIdx].name}!`;}
+  showCard(t,text,meta);
+}
+function addRule(text){
+  const ul=document.getElementById('rulesList');const e=ul.querySelector('.empty');if(e)e.remove();
+  const li=document.createElement('li');li.textContent=text;ul.appendChild(li);
+}
+
+/* ---------------- MODAL ---------------- */
+function showCard(type,text,meta){
+  const m=META[type];
+  const ov=document.createElement('div');ov.className='overlay';ov.id='ov';
+  ov.innerHTML=`<div class="modal${type==='crazy'?' crazyflash':''}" style="--mc:${m.c}">
+    <div style="text-align:center"><span class="badge" style="background:${m.c};box-shadow:0 0 20px ${m.c}">${m.name}</span></div>
+    <div class="emoji">${m.e}</div>
+    <div class="body">${text}</div>
+    ${meta?`<div class="meta">${meta}</div>`:''}
+    <button class="ok" onclick="closeCard()">Done — next player ➜</button>
+  </div>`;
+  document.body.appendChild(ov);
+  if(type==='crazy'||type==='duel'){const g=document.getElementById('game');g.classList.remove('shake');void g.offsetWidth;g.classList.add('shake');}
+}
+
+/* ---------------- PARANOIA ---------------- */
+function showParanoia(q,askerName,ansName){
+  const m=META.paranoia;
+  const ov=document.createElement('div');ov.className='overlay';ov.id='ov';
+  ov.innerHTML=`<div class="modal" style="--mc:${m.c}">
+    <div style="text-align:center"><span class="badge" style="background:${m.c};box-shadow:0 0 20px ${m.c}">${m.name}</span></div>
+    <div class="emoji">${m.e}</div>
+    <div class="body">${askerName}, read this <b>secretly</b> 🤫 then whisper it to <b>${ansName}</b>.<br>They answer <b>out loud with a name</b> — but the question stays a mystery!</div>
+    <div id="paraQ" class="paraq hidden">${q}</div>
+    <button id="paraToggle" class="ok" style="background:#1c1030;color:#fff;margin-top:14px" onclick="toggleParaQ()">👁 Reveal question (${askerName} only)</button>
+    <div class="meta">Named person wants to know it? They take a drink — then hit "Reveal to the room".</div>
+    <button class="ok" style="background:${m.c};color:#19001f" onclick="revealParaRoom()">😈 Reveal to the whole room</button>
+    <button class="ok" onclick="closeCard()">Done — next player ➜</button>
+  </div>`;
+  document.body.appendChild(ov);
+}
+function toggleParaQ(){
+  const b=document.getElementById('paraQ'),t=document.getElementById('paraToggle');
+  const nowHidden=b.classList.toggle('hidden');
+  t.textContent=nowHidden?'👁 Reveal question (your eyes only)':'🙈 Hide question';
+}
+function revealParaRoom(){
+  const b=document.getElementById('paraQ'),t=document.getElementById('paraToggle');
+  b.classList.remove('hidden');if(t)t.classList.add('hidden');
+}
+
+/* ---------------- POWER-UPS ---------------- */
+function playCard(pi,ci){
+  if(document.querySelector('.overlay'))return; // one modal at a time
+  const card=players[pi].inventory[ci];if(!card)return;
+  if(card.target)showTargetPicker(pi,ci);
+  else resolveCard(pi,ci,null);
+}
+function showTargetPicker(pi,ci){
+  const card=players[pi].inventory[ci];
+  let btns='';
+  players.forEach((p,k)=>{if(k!==pi&&!p.finished)btns+=`<button class="targetbtn" onclick="resolveCard(${pi},${ci},${k})">${p.char.e} ${p.name}</button>`;});
+  const ov=document.createElement('div');ov.className='overlay';ov.id='ovpick';
+  ov.innerHTML=`<div class="modal" style="--mc:#ffd23f">
+    <div style="text-align:center"><span class="badge" style="background:#ffd23f">${card.e} ${card.n}</span></div>
+    <div class="body">${players[pi].name}, pick a target:</div>
+    <div class="targets">${btns}</div>
+    <button class="ok" style="background:#2a2b55;color:#fff" onclick="document.getElementById('ovpick').remove()">Cancel</button>
+  </div>`;
+  document.body.appendChild(ov);
+}
+function resolveCard(pi,ci,ti){
+  const pk=document.getElementById('ovpick');if(pk)pk.remove();
+  const card=players[pi].inventory[ci];if(!card)return;
+  const me=players[pi],you=ti!=null?players[ti]:null;let msg='';
+  switch(card.kind){
+    case 'shield':me.shield=true;msg=`${me.name} raises a 🛡️ Shield — the next DARE or CHAOS they land on is negated.`;break;
+    case 'teleport':me.pos=Math.min(me.pos+4,N-1);msg=`${me.name} teleports ⚡ 4 tiles ahead!`;break;
+    case 'swap':{const tmp=me.pos;me.pos=you.pos;you.pos=tmp;msg=`${me.name} swaps board spots with ${you.name}! 🔀`;}break;
+    case 'force':addDrink(ti,3);msg=`${me.name} forces ${you.name} to take 3 sips. 🍺`;break;
+    case 'pass':me.passNext=true;msg=`${me.name} plays Pass the Pain 🎯 — their next tile task goes to the player on their left.`;break;
+    case 'king':msg=`${me.name} is Kingmaker 👑 — hand out 5 sips however you like.`;break;
+  }
+  me.inventory.splice(ci,1);
+  paintTokens();renderPlayers();
+  showSimple(card.e,card.n,msg,'#ffd23f');
+}
+function showSimple(emoji,title,text,color){
+  const ov=document.createElement('div');ov.className='overlay';ov.id='ov2';
+  ov.innerHTML=`<div class="modal" style="--mc:${color}">
+    <div style="text-align:center"><span class="badge" style="background:${color}">${title}</span></div>
+    <div class="emoji">${emoji}</div><div class="body">${text}</div>
+    <button class="ok" onclick="document.getElementById('ov2').remove()">OK</button></div>`;
+  document.body.appendChild(ov);
+}
+
+/* ---------------- CONFETTI ---------------- */
+function fireConfetti(big){
+  const c=document.createElement('canvas');c.className='confetti';
+  c.width=innerWidth;c.height=innerHeight;document.body.appendChild(c);
+  const ctx=c.getContext('2d');
+  const colors=['#ff2e63','#00e5ff','#ffd23f','#39ff14','#ff8c1a','#9d6bff','#ff32e6'];
+  const n=big?240:100,parts=[];
+  for(let i=0;i<n;i++)parts.push({x:Math.random()*c.width,y:-20-Math.random()*c.height*0.5,
+    r:4+Math.random()*7,col:colors[i%colors.length],vy:2+Math.random()*4,vx:-2.5+Math.random()*5,
+    rot:Math.random()*6,vr:-0.25+Math.random()*0.5});
+  let t=0;
+  (function frame(){
+    ctx.clearRect(0,0,c.width,c.height);
+    parts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=0.06;p.rot+=p.vr;
+      ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.rot);ctx.fillStyle=p.col;
+      ctx.fillRect(-p.r/2,-p.r/2,p.r,p.r*0.6);ctx.restore();});
+    if(++t<(big?220:150))requestAnimationFrame(frame);else c.remove();
+  })();
+}
+function closeCard(){
+  const ov=document.getElementById('ov');if(ov)ov.remove();
+  if(players.every(p=>p.finished)){showFinal();return;}
+  nextTurn();
+}
+function nextTurn(){
+  let guard=0;
+  while(true){
+    curIdx=(curIdx+1)%players.length;
+    if(++guard>60)break;
+    if(players[curIdx].finished)continue;
+    if(players[curIdx].skipNext){players[curIdx].skipNext=false;continue;}
+    break;
+  }
+  busy=false;
+  document.getElementById('rollBtn').disabled=false;
+  document.getElementById('dice').textContent='🎲';
+  paintTokens();renderPlayers();renderTurn();
+}
+function showFinal(){
+  fireConfetti(true);
+  const ov=document.createElement('div');ov.className='overlay';
+  const medals=['🥇','🥈','🥉','4️⃣','5️⃣','6️⃣'];let rows='';
+  finishOrder.forEach((pi,idx)=>{
+    rows+=`<div class="place"><span class="medal">${medals[idx]}</span>
+      <span class="dot" style="width:14px;height:14px;background:${players[pi].color};color:${players[pi].color}"></span>
+      <span>${players[pi].char.e} ${players[pi].name}</span></div>`;
+  });
+  const td=maxDrinker();
+  const drinkLine=td>=0?`<div class="body" style="font-size:15px;margin-top:6px">🍺 Biggest drinker: <b>${players[td].char.e} ${players[td].name}</b> (${players[td].drinks} sips tracked)</div>`:'';
+  ov.innerHTML=`<div class="modal final" style="--mc:#ffe66d">
+    <div style="text-align:center"><span class="badge" style="background:#ffe66d;box-shadow:0 0 20px #ffe66d">GAME OVER</span></div>
+    <div class="emoji">🏆</div>
+    <div class="body">Everyone made it home. Final standings:</div>
+    <div style="margin:14px 0">${rows}</div>
+    ${drinkLine}
+    <button class="ok" onclick="returnHome()">Back to Home 🔁</button>
+  </div>`;
+  document.body.appendChild(ov);
+}
+
+renderSetup();
+</script>
+</body>
+</html>
