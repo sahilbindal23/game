@@ -69,7 +69,7 @@
   .hint{color:var(--muted);font-size:12px;text-align:center;margin-top:14px;line-height:1.6}
 
   /* ---------- GAME ---------- */
-  #game{padding:10px 12px 24px;max-width:1020px;margin:0 auto}
+  #game{padding:10px 12px 24px;max-width:1600px;margin:0 auto}
   .topbar{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px}
   .topbar .logo{font-size:22px;text-align:left}
   .ghostbtn{background:#16172e;color:var(--muted);border:1px solid #2a2b55;padding:8px 12px;border-radius:10px;font-size:12px}
@@ -82,6 +82,16 @@
 
   .layout{display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap}
   .boardwrap{flex:1 1 580px;min-width:300px}
+  /* big screens / TV: give the board the lion's share of width */
+  @media(min-width:1100px){
+    .boardwrap{flex:3 1 700px}
+    .side{flex:1 1 300px;max-width:420px}
+    .tile .ico{font-size:26px}
+    .tile.big .ico{font-size:32px}
+    .tile .lab{font-size:9px}
+    .tile .num{font-size:10px}
+    .tok{width:22px;height:22px;font-size:13px}
+  }
 
   /* glowing animated frame around the board */
   .boardframe{position:relative;padding:3px;border-radius:22px;overflow:hidden;
@@ -145,6 +155,22 @@
   @keyframes shake{10%,90%{transform:translateX(-2px)}20%,80%{transform:translateX(4px)}
     30%,50%,70%{transform:translateX(-7px)}40%,60%{transform:translateX(7px)}}
   .shake{animation:shake .5s}
+  /* dice spin while rolling */
+  @keyframes diceSpin{0%{transform:rotate(0) scale(1)}50%{transform:rotate(180deg) scale(1.18)}100%{transform:rotate(360deg) scale(1)}}
+  .dice.rolling{animation:diceSpin .28s linear infinite;box-shadow:0 0 40px #fff,0 0 60px var(--truth)}
+  /* token hop while moving */
+  @keyframes hop{0%,100%{transform:translateY(0)}50%{transform:translateY(-9px) scale(1.18)}}
+  .tok.hop{animation:hop .14s ease-in-out;z-index:5}
+  /* landing burst ring on a tile */
+  .burst{position:absolute;inset:0;border-radius:12px;pointer-events:none;z-index:4;
+    border:2px solid var(--tc,#fff);animation:burst .6s ease-out forwards}
+  @keyframes burst{0%{transform:scale(.5);opacity:.9;box-shadow:0 0 0 0 var(--tc,#fff)}
+    100%{transform:scale(1.5);opacity:0;box-shadow:0 0 30px 8px var(--tc,#fff)}}
+  /* full-screen colored flash / vignette */
+  .vflash{position:fixed;inset:0;pointer-events:none;z-index:55;opacity:0;
+    background:radial-gradient(120% 120% at 50% 50%,transparent 40%,var(--fc,#ff2e63) 130%);
+    animation:vflash .55s ease-out forwards}
+  @keyframes vflash{0%{opacity:0}25%{opacity:.85}100%{opacity:0}}
   .rules{font-size:12px;color:#dfe2ff;line-height:1.5;margin:0;padding-left:2px;list-style:none}
   .rules li{margin-bottom:8px;padding-left:9px;border-left:3px solid var(--rule)}
   .rules .empty{color:var(--muted);font-style:italic;border:0;padding-left:0}
@@ -239,7 +265,7 @@
       <button data-i="unhinged" onclick="setIntensity('unhinged')">💀 Unhinged</button>
     </div>
     <button class="startbtn" onclick="startGame()">Start the Night 🍻</button>
-    <div class="hint">Add or remove players anytime (4–6). One shared screen — pass it on every turn.<br>Everyone must reach FINISH for the game to end. Drink responsibly.</div>
+    <div class="hint">Add or remove players anytime (3–6). One shared screen — pass it on every turn.<br>Everyone must reach FINISH for the game to end. Drink responsibly.</div>
   </div>
 </div>
 
@@ -247,7 +273,10 @@
 <div id="game" class="hidden">
   <div class="topbar">
     <div class="logo">NAMMA NIGHTS</div>
-    <button class="ghostbtn" onclick="if(confirm('Back to home screen? Current game will end.'))returnHome()">Home</button>
+    <div style="display:flex;gap:8px">
+      <button class="ghostbtn" id="fsBtn" onclick="toggleFullscreen()" title="fill the screen / TV">⛶ Fullscreen</button>
+      <button class="ghostbtn" onclick="if(confirm('Back to home screen? Current game will end.'))returnHome()">Home</button>
+    </div>
   </div>
 
   <div class="turnbanner">
@@ -1142,6 +1171,7 @@ let players=[];
 let curIdx=0;
 let finishOrder=[];
 let busy=false;
+let movingIdx=-1;
 
 /* ---------------- SETUP UI ---------------- */
 function renderSetup(){
@@ -1160,10 +1190,25 @@ function renderSetup(){
     box.appendChild(row);
   }
   document.getElementById('countLabel').textContent=count;
-  document.getElementById('minus').disabled=(count<=4);
+  document.getElementById('minus').disabled=(count<=3);
   document.getElementById('plus').disabled=(count>=6);
 }
-function changeCount(d){count=Math.max(4,Math.min(6,count+d));renderSetup();}
+function changeCount(d){count=Math.max(3,Math.min(6,count+d));renderSetup();}
+function toggleFullscreen(){
+  const el=document.documentElement;
+  if(!document.fullscreenElement&&!document.webkitFullscreenElement){
+    (el.requestFullscreen||el.webkitRequestFullscreen||function(){}).call(el);
+  }else{
+    (document.exitFullscreen||document.webkitExitFullscreen||function(){}).call(document);
+  }
+}
+function syncFsBtn(){
+  const b=document.getElementById('fsBtn');if(!b)return;
+  const on=document.fullscreenElement||document.webkitFullscreenElement;
+  b.textContent=on?'⛶ Exit':'⛶ Fullscreen';
+}
+document.addEventListener('fullscreenchange',syncFsBtn);
+document.addEventListener('webkitfullscreenchange',syncFsBtn);
 function setIntensity(v){intensity=v;document.querySelectorAll('#intSeg button').forEach(b=>b.classList.toggle('on',b.dataset.i===v));}
 function cycleChar(i){
   const used=charSel.filter((_,k)=>k!==i);
@@ -1210,9 +1255,9 @@ function renderBoard(){
 }
 function paintTokens(){
   for(let i=0;i<N;i++){const el=document.getElementById('toks'+i);if(el)el.innerHTML='';document.getElementById('tile'+i).classList.remove('cur');}
-  players.forEach(p=>{
+  players.forEach((p,i)=>{
     const el=document.getElementById('toks'+p.pos);
-    if(el){const d=document.createElement('div');d.className='tok';
+    if(el){const d=document.createElement('div');d.className='tok'+(i===movingIdx?' hop':'');
       d.style.color=p.color;d.textContent=p.char.e;d.title=p.name+' ('+p.char.n+')';el.appendChild(d);}
   });
   const cp=players[curIdx];
@@ -1262,15 +1307,26 @@ function roll(){
   if(busy)return; busy=true;
   document.getElementById('rollBtn').disabled=true;
   const dice=document.getElementById('dice');let ticks=0;
+  dice.classList.add('rolling');
   const anim=setInterval(()=>{
     dice.textContent=(1+Math.floor(Math.random()*6));
-    if(++ticks>=10){clearInterval(anim);const val=1+Math.floor(Math.random()*6);dice.textContent=val;moveCurrent(val);}
+    if(++ticks>=10){clearInterval(anim);dice.classList.remove('rolling');const val=1+Math.floor(Math.random()*6);dice.textContent=val;moveCurrent(val);}
   },60);
 }
 function moveCurrent(steps){
   const p=players[curIdx];const target=Math.min(p.pos+steps,N-1);
-  const step=()=>{if(p.pos<target){p.pos++;paintTokens();setTimeout(step,140);}else{renderPlayers();landOn(p.pos);}};
+  movingIdx=curIdx;
+  const step=()=>{if(p.pos<target){p.pos++;paintTokens();setTimeout(step,140);}else{movingIdx=-1;paintTokens();renderPlayers();tileBurst(p.pos);landOn(p.pos);}};
   step();
+}
+function tileBurst(i){
+  const tile=document.getElementById('tile'+i);if(!tile)return;
+  const b=document.createElement('div');b.className='burst';tile.appendChild(b);
+  setTimeout(()=>b.remove(),650);
+}
+function screenFlash(color){
+  const v=document.createElement('div');v.className='vflash';v.style.setProperty('--fc',color);
+  document.body.appendChild(v);setTimeout(()=>v.remove(),600);
 }
 function landOn(i){
   const t=typeMap[i];
@@ -1328,6 +1384,7 @@ function showCard(type,text,meta){
   </div>`;
   document.body.appendChild(ov);
   if(type==='crazy'||type==='duel'){const g=document.getElementById('game');g.classList.remove('shake');void g.offsetWidth;g.classList.add('shake');}
+  if(['crazy','duel','powerup','swap','forward','back'].includes(type))screenFlash(m.c);
 }
 
 /* ---------------- PARANOIA ---------------- */
