@@ -1250,8 +1250,10 @@ function startGame(){
     const v=document.getElementById('nm'+i).value.trim();
     players.push({name:v||DEFAULT_NAMES[i],color:PLAYER_COLORS[i],char:CHARACTERS[charSel[i]],pos:0,finished:false,skipNext:false,inventory:[],shield:false,passNext:false,drinks:0});
   }
-  curIdx=0;finishOrder=[];busy=false;
+  curIdx=0;finishOrder=[];busy=false;movingIdx=-1;
   buildSpiral();buildTypeMap();buildDrawers();
+  const rb=document.getElementById('rollBtn');rb.disabled=false;
+  document.getElementById('dice').textContent='🎲';
   document.getElementById('setup').classList.add('hidden');
   document.getElementById('game').classList.remove('hidden');
   document.getElementById('rulesList').innerHTML='<li class="empty">No rules yet… land on a 📜 tile.</li>';
