@@ -610,7 +610,10 @@ function bombAction(){
   bombArmed=true;
   document.getElementById('bombCat').textContent=draw('bombcat');
   document.getElementById('bombHint').textContent='Go! Answer & pass… 💨';
-  const el=document.getElementById('bombEl');el.classList.add('tick');
+  const el=document.getElementById('bombEl');
+  el.className='bomb';el.textContent='💣'; // clear any prior boom state
+  void el.offsetWidth; // restart the shake animation cleanly
+  el.classList.add('tick');
   document.getElementById('bombBtn').textContent='Defuse / Stop ✋';
   bombStart=Date.now();bombFuse=9000+Math.random()*26000; // 9–35s, hidden
   lastTick=0;
