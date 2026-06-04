@@ -107,11 +107,24 @@
     border-radius:14px;padding:16px;margin:14px 0;color:#fff;box-shadow:inset 0 0 22px #ff32e644}
 
   /* ---------- BOMB PASS ---------- */
-  .bomb{font-size:84px;margin:18px auto 8px;width:fit-content;line-height:1;filter:drop-shadow(0 0 16px var(--crazy))}
-  .bomb.tick{animation:bombtick var(--spd,.5s) ease-in-out infinite}
-  @keyframes bombtick{0%,100%{transform:rotate(-7deg) scale(1)}50%{transform:rotate(7deg) scale(1.12)}}
-  .bomb.boom{animation:boom .5s ease-out forwards}
-  @keyframes boom{0%{transform:scale(1)}40%{transform:scale(1.7)}100%{transform:scale(1.3)}}
+  .bomb{font-size:96px;margin:16px auto 6px;width:fit-content;line-height:1;filter:drop-shadow(0 0 16px var(--crazy))}
+  .bomb.tick{animation:bombtick var(--spd,.5s) ease-in-out infinite, bombglow var(--spd,.5s) ease-in-out infinite}
+  @keyframes bombtick{
+    0%{transform:translate(-7px,1px) rotate(-11deg) scale(1)}
+    25%{transform:translate(6px,-4px) rotate(9deg) scale(1.08)}
+    50%{transform:translate(-6px,3px) rotate(-10deg) scale(1.16)}
+    75%{transform:translate(7px,-3px) rotate(10deg) scale(1.08)}
+    100%{transform:translate(-7px,1px) rotate(-11deg) scale(1)}}
+  @keyframes bombglow{0%,100%{filter:drop-shadow(0 0 8px #ff8c1a)}50%{filter:drop-shadow(0 0 30px var(--crazy)) drop-shadow(0 0 50px var(--crazy))}}
+  .bomb.boom{animation:boom .55s ease-out forwards}
+  @keyframes boom{0%{transform:scale(.8)}30%{transform:scale(2)}60%{transform:scale(1.5)}100%{transform:scale(1.4)}}
+  .panel.pshake{animation:pshake .5s}
+  @keyframes pshake{10%,90%{transform:translate3d(-2px,0,0)}20%,80%{transform:translate3d(5px,0,0)}
+    30%,50%,70%{transform:translate3d(-9px,1px,0)}40%,60%{transform:translate3d(9px,-1px,0)}}
+  .bflash{position:fixed;inset:0;pointer-events:none;z-index:80;
+    background:radial-gradient(circle at 50% 45%,#fff 0%,#ffd23f 18%,#ff8c1a 38%,#ff1744 58%,transparent 76%);
+    animation:bflash .65s ease-out forwards}
+  @keyframes bflash{0%{opacity:0;transform:scale(.35)}12%{opacity:1}100%{opacity:0;transform:scale(1.7)}}
 
   @media(min-width:1100px){.screen{padding-top:26px}}
 </style>
@@ -200,7 +213,10 @@
   <div class="topbar">
     <button class="ghostbtn" onclick="go('home')">← Hub</button>
     <div class="gtitle">💣 Bomb Pass</div>
-    <button class="ghostbtn" onclick="toggleFullscreen()">⛶</button>
+    <div style="display:flex;gap:6px">
+      <button class="ghostbtn" id="bombSndBtn" onclick="toggleBombSound()" title="sound on/off">🔊</button>
+      <button class="ghostbtn" onclick="toggleFullscreen()">⛶</button>
+    </div>
   </div>
   <div class="stage">
     <div class="panel" style="--pc:var(--crazy)">
@@ -542,7 +558,45 @@ function revealParaRoom(){
 }
 
 /* =================== BOMB PASS =================== */
-let bombTimer=null,bombStart=0,bombFuse=0,bombArmed=false;
+let bombTimer=null,bombStart=0,bombFuse=0,bombArmed=false,lastTick=0;
+/* --- Web Audio (offline, no files) --- */
+let _actx=null,bombSound=true;
+function actx(){
+  if(!_actx){try{_actx=new (window.AudioContext||window.webkitAudioContext)();}catch(e){return null;}}
+  if(_actx.state==='suspended')_actx.resume();
+  return _actx;
+}
+function toggleBombSound(){
+  bombSound=!bombSound;
+  document.getElementById('bombSndBtn').textContent=bombSound?'🔊':'🔇';
+}
+function beep(freq,dur,type,vol){
+  if(!bombSound)return; const c=actx(); if(!c)return;
+  const o=c.createOscillator(),g=c.createGain();
+  o.type=type||'square'; o.frequency.value=freq;
+  g.gain.setValueAtTime(0,c.currentTime);
+  g.gain.linearRampToValueAtTime(vol||0.18,c.currentTime+0.005);
+  g.gain.exponentialRampToValueAtTime(0.0001,c.currentTime+(dur||0.06));
+  o.connect(g);g.connect(c.destination);
+  o.start();o.stop(c.currentTime+(dur||0.06)+0.02);
+}
+function explosionSound(){
+  if(!bombSound)return; const c=actx(); if(!c)return; const t=c.currentTime;
+  // white-noise burst through a sweeping lowpass
+  const n=c.sampleRate*0.7, buf=c.createBuffer(1,n,c.sampleRate), d=buf.getChannelData(0);
+  for(let i=0;i<n;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/n,1.8);
+  const src=c.createBufferSource();src.buffer=buf;
+  const lp=c.createBiquadFilter();lp.type='lowpass';
+  lp.frequency.setValueAtTime(3200,t);lp.frequency.exponentialRampToValueAtTime(180,t+0.6);
+  const ng=c.createGain();ng.gain.setValueAtTime(0.9,t);ng.gain.exponentialRampToValueAtTime(0.001,t+0.7);
+  src.connect(lp);lp.connect(ng);ng.connect(c.destination);src.start(t);
+  // low sine boom
+  const o=c.createOscillator(),g=c.createGain();o.type='sine';
+  o.frequency.setValueAtTime(140,t);o.frequency.exponentialRampToValueAtTime(40,t+0.55);
+  g.gain.setValueAtTime(0.0001,t);g.gain.linearRampToValueAtTime(0.6,t+0.02);
+  g.gain.exponentialRampToValueAtTime(0.001,t+0.65);
+  o.connect(g);g.connect(c.destination);o.start(t);o.stop(t+0.7);
+}
 function resetBomb(){
   clearInterval(bombTimer);bombTimer=null;bombArmed=false;
   const el=document.getElementById('bombEl');el.className='bomb';el.textContent='💣';el.style.setProperty('--spd','.5s');
@@ -551,6 +605,7 @@ function resetBomb(){
   const b=document.getElementById('bombBtn');b.textContent='Start round 💣';b.className='bigbtn alt';
 }
 function bombAction(){
+  actx(); // unlock audio on this user gesture
   if(bombArmed){resetBomb();return;}
   bombArmed=true;
   document.getElementById('bombCat').textContent=draw('bombcat');
@@ -558,11 +613,15 @@ function bombAction(){
   const el=document.getElementById('bombEl');el.classList.add('tick');
   document.getElementById('bombBtn').textContent='Defuse / Stop ✋';
   bombStart=Date.now();bombFuse=9000+Math.random()*26000; // 9–35s, hidden
+  lastTick=0;
   bombTimer=setInterval(()=>{
     const p=(Date.now()-bombStart)/bombFuse;
     el.style.setProperty('--spd',Math.max(0.12,0.55-p*0.45)+'s'); // shakes faster as it nears
+    // accelerating + rising-pitch tick: gap shrinks 520ms -> 90ms
+    const now=Date.now(), gap=Math.max(90,520-p*430);
+    if(now-lastTick>=gap){ lastTick=now; beep(420+p*520,0.05,'square',0.16); }
     if(p>=1)bombBoom();
-  },120);
+  },60);
 }
 function bombBoom(){
   clearInterval(bombTimer);bombTimer=null;bombArmed=false;
@@ -570,6 +629,13 @@ function bombBoom(){
   document.getElementById('bombCat').textContent='BOOM!';
   document.getElementById('bombHint').innerHTML='<b>Whoever\'s holding the phone drinks!</b> 🍺';
   const b=document.getElementById('bombBtn');b.textContent='New round 💣';b.className='bigbtn';
+  // visual: full-screen flash + panel shake
+  const fl=document.createElement('div');fl.className='bflash';document.body.appendChild(fl);
+  setTimeout(()=>fl.remove(),700);
+  const panel=el.closest('.panel');
+  if(panel){panel.classList.remove('pshake');void panel.offsetWidth;panel.classList.add('pshake');
+    setTimeout(()=>panel.classList.remove('pshake'),600);}
+  explosionSound();
 }
 
 /* =================== KINGS CUP =================== */
