@@ -101,6 +101,18 @@
   .deckmeta{color:var(--muted);font-size:12px;margin-top:6px}
   .cuprow{font-size:13px;color:var(--blr);margin-top:8px;font-weight:700}
 
+  /* ---------- PARANOIA ---------- */
+  .hidden{display:none!important}
+  .paraq{font-size:20px;font-weight:800;line-height:1.4;background:#1a0a2e;border:1px solid var(--special);
+    border-radius:14px;padding:16px;margin:14px 0;color:#fff;box-shadow:inset 0 0 22px #ff32e644}
+
+  /* ---------- BOMB PASS ---------- */
+  .bomb{font-size:84px;margin:18px auto 8px;width:fit-content;line-height:1;filter:drop-shadow(0 0 16px var(--crazy))}
+  .bomb.tick{animation:bombtick var(--spd,.5s) ease-in-out infinite}
+  @keyframes bombtick{0%,100%{transform:rotate(-7deg) scale(1)}50%{transform:rotate(7deg) scale(1.12)}}
+  .bomb.boom{animation:boom .5s ease-out forwards}
+  @keyframes boom{0%{transform:scale(1)}40%{transform:scale(1.7)}100%{transform:scale(1.3)}}
+
   @media(min-width:1100px){.screen{padding-top:26px}}
 </style>
 </head>
@@ -159,6 +171,45 @@
       <div class="body" id="kcRule" style="font-size:18px">Draw a card to begin.</div>
     </div>
     <button class="bigbtn" id="kcBtn" onclick="drawKing()">Draw a card 🃏</button>
+  </div>
+</div>
+
+<!-- ============ PARANOIA ============ -->
+<div id="paranoia" class="screen">
+  <div class="topbar">
+    <button class="ghostbtn" onclick="go('home')">← Hub</button>
+    <div class="gtitle">😈 Paranoia</div>
+    <button class="ghostbtn" onclick="toggleFullscreen()">⛶</button>
+  </div>
+  <div class="stage">
+    <div class="panel" style="--pc:var(--special)">
+      <div style="text-align:center"><span class="badge" style="background:var(--special)">Paranoia</span></div>
+      <div class="emoji">😈</div>
+      <div class="body" id="paraIntro">Loading…</div>
+      <div id="paraQ" class="paraq hidden"></div>
+      <button id="paraReveal" class="bigbtn alt" onclick="toggleParaQ()">👁 Reveal question (asker only)</button>
+      <div class="meta">Named person wants to know it? They take a drink, then tap “Reveal to the room”.</div>
+      <button class="bigbtn" style="background:linear-gradient(90deg,var(--special),var(--purple));color:#fff" onclick="revealParaRoom()">😈 Reveal to the room</button>
+    </div>
+    <button class="bigbtn" onclick="startParanoia()">Next question ➜</button>
+  </div>
+</div>
+
+<!-- ============ BOMB PASS ============ -->
+<div id="bomb" class="screen">
+  <div class="topbar">
+    <button class="ghostbtn" onclick="go('home')">← Hub</button>
+    <div class="gtitle">💣 Bomb Pass</div>
+    <button class="ghostbtn" onclick="toggleFullscreen()">⛶</button>
+  </div>
+  <div class="stage">
+    <div class="panel" style="--pc:var(--crazy)">
+      <div style="text-align:center"><span class="badge" style="background:var(--crazy);color:#fff">Category</span></div>
+      <div class="body" id="bombCat" style="font-size:22px">Tap start for a category.</div>
+      <div class="bomb" id="bombEl">💣</div>
+      <div class="meta" id="bombHint">Pass the phone after you answer. Don't be holding it when it blows.</div>
+    </div>
+    <button class="bigbtn alt" id="bombBtn" onclick="bombAction()">Start round 💣</button>
   </div>
 </div>
 
@@ -221,11 +272,14 @@ function squad(){
 
 /* =================== NAV =================== */
 function go(id){
+  if(typeof bombTimer!=='undefined'&&bombTimer){clearInterval(bombTimer);bombTimer=null;}
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));
   document.getElementById(id).classList.add('on');
   window.scrollTo(0,0);
   if(id==='mostlikely'){resetDrawer('ml');document.getElementById('mlText').textContent='Tap “Next prompt” to start.';}
   if(id==='kings')resetKings();
+  if(id==='paranoia'){resetDrawer('paranoia');paraIdx=0;startParanoia();}
+  if(id==='bomb'){resetDrawer('bombcat');resetBomb();}
 }
 function openNamma(){saveSquad();location.href='nammanights.html';}
 function toggleFullscreen(){
@@ -240,6 +294,8 @@ const GAMES=[
   {id:'namma',e:'🎲',n:'Namma Nights',d:'The full neon board game — dares, truths, power-ups, paranoia & CHAOS.',c:'var(--dare)',tag:'Board',fn:'openNamma()'},
   {id:'mostlikely',e:'🫵',n:'Most Likely To',d:'Point on 3. Most votes drinks. Pure friend-group carnage.',c:'var(--purple)',tag:'Group',fn:"go('mostlikely')"},
   {id:'kings',e:'👑',n:"Kings Cup",d:'Our own chaotic ruleset — footy, dares, rhymes, accents & the King’s Cup.',c:'var(--blr)',tag:'Cards',fn:"go('kings')"},
+  {id:'paranoia',e:'😈',n:'Paranoia',d:'Whisper a question. They answer out loud with a name — but the question stays a mystery.',c:'var(--special)',tag:'Secrets',fn:"go('paranoia')"},
+  {id:'bomb',e:'💣',n:'Bomb Pass',d:'Ticking bomb + a category. Pass the phone answering — holder when it blows drinks.',c:'var(--crazy)',tag:'Fast',fn:"go('bomb')"},
 ];
 function renderGrid(){
   const g=document.getElementById('gameGrid');g.innerHTML='';
@@ -362,6 +418,90 @@ const DECKS={
     "…to plan the next trip and bail on it?",
     "…to be the last one standing tonight?",
   ],
+  paranoia:[
+    "Who in the room would you kiss if you absolutely had to?",
+    "Who here is secretly the most attractive?",
+    "Who would you least trust with your phone unlocked?",
+    "Who's most likely to betray the group first?",
+    "Who would you call to bail you out of jail at 3am?",
+    "Who here is faking being okay tonight?",
+    "Who's the worst dressed in the room right now?",
+    "Who would you swap lives with for a week?",
+    "Who talks the most game but delivers the least?",
+    "Who's most likely to be rich in 10 years?",
+    "Who here would you go on a road trip with — and who never?",
+    "Who's the biggest flirt in the group?",
+    "Who would you trust to plan your bachelor/bachelorette?",
+    "Who's most likely to text their ex tonight?",
+    "Who here gives the worst advice?",
+    "Who would survive the longest in a horror movie?",
+    "Who's the messiest drunk here?",
+    "Who would you want on your team in a bar fight?",
+    "Who's most likely to ghost the group chat for a month?",
+    "Who here has the wildest search history?",
+    "Who would you least want to be stuck in traffic with?",
+    "Who's the most likely to cry during a football match?",
+    "Who would make the best wingman tonight?",
+    "Who's secretly the smartest in the room?",
+    "Who here peaked in school?",
+    "Who would you swipe right on if they were a stranger?",
+    "Who's most likely to start a fight with an auto driver?",
+    "Who's the most overrated in the group?",
+    "Who would you pick to give your wedding speech?",
+    "Who here is most likely hiding a relationship?",
+    "Who's the cheapest when the bill arrives?",
+    "Who would you least want to share a hotel room with?",
+    "Who's most likely to become famous for something stupid?",
+    "Who here is the biggest drama queen?",
+    "Who would you trust with a secret — and who absolutely not?",
+    "Who's the worst driver, on the track and the road?",
+    "Who's most likely to fall asleep first tonight?",
+    "Who here would you want as a flatmate?",
+    "Who's the most likely to do something they regret tonight?",
+    "Who would win in a fight, no weapons, everyone in this room?",
+  ],
+  bombcat:[
+    "Premier League clubs",
+    "Footballers — first names only",
+    "Bangalore neighbourhoods",
+    "Breweries / pubs in Bangalore",
+    "Cocktails or drinks",
+    "Reasons you're late (traffic excuses)",
+    "Bollywood movies",
+    "Things you'd find in an auto",
+    "FIFA World Cup winning countries",
+    "Indian street foods",
+    "Things at a Bangalore brunch",
+    "Cricket players",
+    "Things you do when drunk",
+    "Pizza toppings",
+    "Famous Messi or Ronaldo moments",
+    "Apps on your phone",
+    "Bangalore tech parks or offices",
+    "Beer or alcohol brands",
+    "Things that cause Bangalore traffic",
+    "Cartoon characters",
+    "Songs everyone knows the words to",
+    "Reasons to cancel plans",
+    "Items on a darshini menu",
+    "Things you'd never say to your boss",
+    "European football leagues or cities",
+    "Red flags in a date",
+    "Things in this room",
+    "Ice cream flavours",
+    "Indian festivals",
+    "Celebrities you'd invite to the party",
+    "Types of coffee",
+    "Things found at a music festival",
+    "Movies that made you cry",
+    "Reasons you got grounded in school",
+    "Slang words you use daily",
+    "Things that are overrated",
+    "Bangalore weekend getaways",
+    "Football positions or formations",
+    "Things you'd save in a fire",
+    "Wrong reasons to text an ex",
+  ],
 };
 /* no-repeat drawers */
 const drawers={};
@@ -376,6 +516,60 @@ function fill(s){
 /* =================== MOST LIKELY TO =================== */
 function nextMostLikely(){
   document.getElementById('mlText').textContent='Who’s most likely '+draw('ml');
+}
+
+/* =================== PARANOIA =================== */
+let paraIdx=0;
+function startParanoia(){
+  const sq=squad();const n=sq.length;
+  const asker=sq[paraIdx%n];const target=sq[(paraIdx+1)%n];
+  paraIdx++;
+  document.getElementById('paraIntro').innerHTML=
+    `<b>${asker.char.e} ${asker.name}</b>, read the question <b>secretly</b> 🤫 then whisper it to <b>${target.char.e} ${target.name}</b>.<br>They answer <b>out loud with a name</b> — the question stays a mystery.`;
+  const q=document.getElementById('paraQ');
+  q.textContent=draw('paranoia');q.classList.add('hidden');
+  const rb=document.getElementById('paraReveal');
+  rb.textContent='👁 Reveal question ('+asker.name+' only)';rb.classList.remove('hidden');
+}
+function toggleParaQ(){
+  const q=document.getElementById('paraQ'),b=document.getElementById('paraReveal');
+  if(q.classList.contains('hidden')){q.classList.remove('hidden');b.textContent='🙈 Hide question';}
+  else{q.classList.add('hidden');b.textContent='👁 Reveal question';}
+}
+function revealParaRoom(){
+  document.getElementById('paraQ').classList.remove('hidden');
+  document.getElementById('paraReveal').classList.add('hidden');
+}
+
+/* =================== BOMB PASS =================== */
+let bombTimer=null,bombStart=0,bombFuse=0,bombArmed=false;
+function resetBomb(){
+  clearInterval(bombTimer);bombTimer=null;bombArmed=false;
+  const el=document.getElementById('bombEl');el.className='bomb';el.textContent='💣';el.style.setProperty('--spd','.5s');
+  document.getElementById('bombCat').textContent='Tap start for a category.';
+  document.getElementById('bombHint').textContent="Pass the phone after you answer. Don't be holding it when it blows.";
+  const b=document.getElementById('bombBtn');b.textContent='Start round 💣';b.className='bigbtn alt';
+}
+function bombAction(){
+  if(bombArmed){resetBomb();return;}
+  bombArmed=true;
+  document.getElementById('bombCat').textContent=draw('bombcat');
+  document.getElementById('bombHint').textContent='Go! Answer & pass… 💨';
+  const el=document.getElementById('bombEl');el.classList.add('tick');
+  document.getElementById('bombBtn').textContent='Defuse / Stop ✋';
+  bombStart=Date.now();bombFuse=9000+Math.random()*26000; // 9–35s, hidden
+  bombTimer=setInterval(()=>{
+    const p=(Date.now()-bombStart)/bombFuse;
+    el.style.setProperty('--spd',Math.max(0.12,0.55-p*0.45)+'s'); // shakes faster as it nears
+    if(p>=1)bombBoom();
+  },120);
+}
+function bombBoom(){
+  clearInterval(bombTimer);bombTimer=null;bombArmed=false;
+  const el=document.getElementById('bombEl');el.className='bomb boom';el.textContent='💥';
+  document.getElementById('bombCat').textContent='BOOM!';
+  document.getElementById('bombHint').innerHTML='<b>Whoever\'s holding the phone drinks!</b> 🍺';
+  const b=document.getElementById('bombBtn');b.textContent='New round 💣';b.className='bigbtn';
 }
 
 /* =================== KINGS CUP =================== */
