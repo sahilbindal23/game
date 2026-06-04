@@ -271,7 +271,7 @@ const GAMES=[
   {id:'namma',e:'🎲',n:'Namma Nights',d:'The full neon board game — dares, truths, power-ups, paranoia & CHAOS.',c:'var(--dare)',tag:'Board',fn:'openNamma()'},
   {id:'bottle',e:'🍾',n:'Spin the Bottle',d:'Bottle picks a victim. Truth, Dare or Sip — your call.',c:'var(--truth)',tag:'Party',fn:"go('bottle')"},
   {id:'mostlikely',e:'🫵',n:'Most Likely To',d:'Point on 3. Most votes drinks. Pure friend-group carnage.',c:'var(--purple)',tag:'Group',fn:"go('mostlikely')"},
-  {id:'kings',e:'👑',n:"Kings Cup",d:'Draw cards, trigger rules. 4th king downs the King’s Cup.',c:'var(--blr)',tag:'Cards',fn:"go('kings')"},
+  {id:'kings',e:'👑',n:"Kings Cup",d:'Our own chaotic ruleset — footy, dares, rhymes, accents & the King’s Cup.',c:'var(--blr)',tag:'Cards',fn:"go('kings')"},
 ];
 function renderGrid(){
   const g=document.getElementById('gameGrid');g.innerHTML='';
@@ -465,19 +465,19 @@ function nextMostLikely(){
 
 /* =================== KINGS CUP =================== */
 const KINGS={
-  A:{n:'Ace · Waterfall',d:'Everyone drinks together. You can’t stop until the person before you stops. {p} starts.'},
-  '2':{n:'2 · You',d:'{p}, pick someone to take a drink.'},
-  '3':{n:'3 · Me',d:'{p} drinks. Tough luck.'},
-  '4':{n:'4 · Floor',d:'Everyone touch the floor — last one drinks.'},
-  '5':{n:'5 · Thumb Master',d:'{p}: drop your thumb on the table any time till the next 5. Last to copy drinks.'},
-  '6':{n:'6 · Left',d:'Person to {p}’s left drinks.'},
-  '7':{n:'7 · Heaven',d:'Everyone reach for the sky — last hand up drinks.'},
-  '8':{n:'8 · Mate',d:'{p} picks a drinking buddy — they drink whenever {p} drinks.'},
-  '9':{n:'9 · Rhyme',d:'{p} says a word; go round rhyming. First to fail or repeat drinks.'},
-  '10':{n:'10 · Categories',d:'{p} picks a category (e.g. Bangalore clubs). Go round — first to blank drinks.'},
-  J:{n:'Jack · New Rule',d:'{p} makes a rule everyone must follow for the rest of the game. Break it = drink.'},
-  Q:{n:'Queen · Question Master',d:'{p} is Question Master. Anyone who answers their question drinks — till the next Queen.'},
-  K:{n:'King · King’s Cup',d:'Pour some of your drink into the center cup. The 4th King downs the whole thing. 💀'},
+  A:{n:'Ace · Waterfall 🌊',d:'Everyone drinks together. You cannot stop until the person before you stops. {p} starts.'},
+  '2':{n:'2 · Story Time 📸',d:'{p} tells the wildest TRUE story behind a random photo in their camera roll. Group says boring? Drink 2.'},
+  '3':{n:'3 · Most Likely 🎯',d:'On 3, everyone points at who is most likely {ml} Most votes drinks 2.'},
+  '4':{n:'4 · Beer Footy ⚽',d:'{p} names a footballer. Go round — no repeats. First to blank or repeat drinks.'},
+  '5':{n:'5 · Copy Cat 💃',d:'{p} busts out a dance move or a face. Everyone copies — last or worst one drinks.'},
+  '6':{n:'6 · Truth or Drink 🤐',d:'The group fires one question at {p}. Answer honestly, or take 3 sips to dodge it.'},
+  '7':{n:'7 · Dare 🃏',d:'The group gives {p} a dare. Do it… or finish your drink.'},
+  '8':{n:'8 · Soulmate 🤝',d:'{p} picks a drinking buddy. They drink every time {p} drinks — until the next 8.'},
+  '9':{n:'9 · Rhyme or Crime 🎤',d:'{p} says a word; go round rhyming. First to fail or repeat drinks.'},
+  '10':{n:'10 · Never Have I Ever 🙈',d:'{p} says “Never have I ever…”. Everyone who HAS done it drinks.'},
+  J:{n:'Jack · New Rule 📜',d:'{p} makes a rule for the whole table. Break it any time = drink. Stacks with every other Jack.'},
+  Q:{n:'Queen · Accent Master 🎭',d:'{p} picks an accent. Everyone must talk in it until the next Queen. Slip up = drink.'},
+  K:{n:'King · King’s Cup 👑',d:'Pour some of your drink into the center cup. The 4th King downs the whole thing. 💀'},
 };
 const RANKS=['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
 const SUITS=[{s:'♠',r:0},{s:'♥',r:1},{s:'♦',r:1},{s:'♣',r:0}];
@@ -503,7 +503,7 @@ function drawKing(){
   card.innerHTML=`<span class="st tl">${c.s}</span><div class="rk">${c.r}</div><span class="st br">${c.s}</span>`;
   document.getElementById('kcMeta').textContent=kcDeck.length+' cards left.';
   document.getElementById('kcCup').textContent=`King’s Cup: ${kcKings} / 4 kings poured.`;
-  let rule=fill(info.d);
+  let rule=fill(info.d.replace('{ml}',draw('ml')));
   if(c.r==='K'&&kcKings>=4)rule='💀 FOURTH KING! Whoever drew it downs the entire King’s Cup. Game over — reset for a new round.';
   document.getElementById('kcRule').innerHTML='<b>'+info.n+'</b><br>'+rule;
   if(!kcDeck.length){document.getElementById('kcBtn').textContent='Deck empty — reshuffle 🔁';}
