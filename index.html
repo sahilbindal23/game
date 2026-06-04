@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="theme-color" content="#08080f" />
+<title>Namma Nights — Game Night Hub</title>
+<style>
+  :root{
+    --bg:#08080f;--ink:#f4f5ff;--muted:#9aa0c8;
+    --dare:#ff2e63;--truth:#00e5ff;--blr:#ffd23f;--start:#39ff14;
+    --special:#ff32e6;--rule:#ff8c1a;--purple:#9d6bff;--crazy:#ff1744;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);
+    font-family:'Segoe UI',system-ui,-apple-system,Roboto,sans-serif;
+    overscroll-behavior:none;touch-action:manipulation}
+  body{min-height:100vh;min-height:100dvh}
+  button{font-family:inherit;cursor:pointer;border:0;color:inherit}
+  input{font-family:inherit}
+  .screen{display:none;max-width:1100px;margin:0 auto;padding:18px 14px 60px;
+    padding-bottom:calc(60px + env(safe-area-inset-bottom))}
+  .screen.on{display:block}
+  .logo{font-size:clamp(30px,8vw,52px);font-weight:900;text-align:center;letter-spacing:1px;
+    background:linear-gradient(90deg,var(--dare),var(--special),var(--purple),var(--truth),var(--start),var(--blr),var(--dare));
+    background-size:300% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;
+    animation:flow 14s linear infinite;line-height:1.05}
+  @keyframes flow{0%{background-position:0% 50%}100%{background-position:300% 50%}}
+  .tag{text-align:center;color:var(--muted);font-size:13px;margin:4px 0 18px}
+
+  /* ---------- SQUAD SETUP ---------- */
+  .card{background:linear-gradient(180deg,#13142b,#0b0b17);border:1px solid #23244a;
+    border-radius:20px;padding:18px;margin:0 auto 18px;max-width:560px;box-shadow:0 0 40px #00000055}
+  .secttl{font-size:13px;text-transform:uppercase;letter-spacing:2px;color:var(--muted);margin:0 0 12px;text-align:center}
+  .counter{display:flex;align-items:center;justify-content:center;gap:18px;margin-bottom:14px}
+  .counter button{width:46px;height:46px;border-radius:14px;background:#1b1c3a;font-size:24px;font-weight:900;color:var(--ink)}
+  .counter button:disabled{opacity:.35}
+  .counter .n{font-size:34px;font-weight:900;min-width:46px;text-align:center}
+  .counter .lbl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+  .prow{display:flex;align-items:center;gap:10px;margin-bottom:9px}
+  .dot{width:14px;height:14px;border-radius:50%;flex:0 0 auto;box-shadow:0 0 10px currentColor}
+  .charbtn{background:#0a0a16;border:1px solid #2a2b55;border-radius:12px;padding:6px 7px;
+    display:flex;flex-direction:column;align-items:center;gap:1px;min-width:74px;max-width:74px;
+    color:var(--muted);font-size:9px;line-height:1.15;text-align:center}
+  .charbtn .cemoji{font-size:24px}
+  .charbtn:active{border-color:var(--truth)}
+  .prow input{flex:1;background:#0a0a16;border:1px solid #2a2b55;border-radius:12px;
+    padding:12px;color:var(--ink);font-size:16px;min-width:0}
+  .prow input:focus{outline:none;border-color:var(--truth);box-shadow:0 0 0 2px #00e5ff33}
+
+  /* ---------- GAME GRID ---------- */
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px;max-width:900px;margin:0 auto}
+  .game{position:relative;border-radius:20px;padding:22px 18px;border:1px solid #2a2b55;overflow:hidden;
+    background:linear-gradient(160deg,#15162e,#0a0a16);text-align:left;transition:transform .12s ease,box-shadow .2s}
+  .game:active{transform:scale(.98)}
+  .game:hover{box-shadow:0 0 30px var(--gc,#9d6bff55);border-color:var(--gc,#9d6bff)}
+  .game .ge{font-size:42px;filter:drop-shadow(0 0 12px var(--gc))}
+  .game .gn{font-size:20px;font-weight:900;margin:10px 0 4px}
+  .game .gd{font-size:12.5px;color:var(--muted);line-height:1.45}
+  .game .gp{position:absolute;top:14px;right:14px;font-size:10px;font-weight:800;text-transform:uppercase;
+    letter-spacing:1px;color:#000;background:var(--gc,#9d6bff);padding:3px 9px;border-radius:999px}
+  .hint{color:var(--muted);font-size:12px;text-align:center;margin-top:22px;line-height:1.6}
+
+  /* ---------- SUB-GAME SHELL ---------- */
+  .topbar{display:flex;justify-content:space-between;align-items:center;gap:8px;max-width:760px;margin:0 auto 14px}
+  .ghostbtn{background:#16172e;color:var(--muted);border:1px solid #2a2b55;padding:9px 14px;border-radius:12px;font-size:13px}
+  .gtitle{font-size:22px;font-weight:900}
+  .stage{max-width:760px;margin:0 auto;text-align:center}
+
+  /* card modal-ish panel */
+  .panel{background:linear-gradient(180deg,#17182f,#0a0a16);border-radius:24px;padding:26px 22px;
+    border:1px solid var(--pc,#2a2b55);box-shadow:0 0 50px #000,0 0 30px var(--pc,#2a2b55)66;max-width:520px;margin:18px auto}
+  .badge{display:inline-block;font-size:12px;font-weight:900;letter-spacing:2px;text-transform:uppercase;
+    padding:7px 16px;border-radius:999px;color:#000}
+  .panel .emoji{font-size:54px;margin:14px 0 6px;filter:drop-shadow(0 0 14px var(--pc))}
+  .panel .body{font-size:20px;line-height:1.5;font-weight:600;margin:8px 0}
+  .panel .meta{color:var(--muted);font-size:12px;margin-top:10px}
+  .bigbtn{display:block;width:100%;max-width:420px;margin:14px auto 0;padding:16px;border-radius:16px;
+    font-size:17px;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;color:#001018;
+    background:linear-gradient(90deg,var(--truth),var(--start));box-shadow:0 0 26px #00e5ff55}
+  .bigbtn.alt{background:linear-gradient(90deg,var(--dare),var(--special));color:#fff;box-shadow:0 0 26px #ff2e6355}
+  .bigbtn:disabled{opacity:.4;box-shadow:none}
+  .choices{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-top:10px}
+  .choices button{flex:1 1 130px;max-width:200px;padding:18px 10px;border-radius:16px;font-size:16px;font-weight:800;
+    text-transform:uppercase;letter-spacing:1px}
+  .cT{background:linear-gradient(90deg,var(--truth),#0aa);color:#001018;box-shadow:0 0 22px #00e5ff55}
+  .cD{background:linear-gradient(90deg,var(--dare),var(--special));color:#fff;box-shadow:0 0 22px #ff2e6355}
+  .cS{background:linear-gradient(90deg,var(--blr),var(--rule));color:#1a1300;box-shadow:0 0 22px #ffd23f55}
+
+  /* ---------- SPIN THE BOTTLE ---------- */
+  .arena{position:relative;width:min(86vw,420px);height:min(86vw,420px);margin:14px auto;border-radius:50%;
+    border:2px dashed #2a2b55;background:radial-gradient(circle at 50% 50%,#101028,#08080f 72%)}
+  .pchip{position:absolute;left:50%;top:50%;width:60px;margin:-30px 0 0 -30px;text-align:center}
+  .pchip .pc-e{width:46px;height:46px;margin:0 auto;border-radius:50%;border:2px solid currentColor;background:#0b0b18;
+    font-size:24px;display:flex;align-items:center;justify-content:center;box-shadow:0 0 12px currentColor}
+  .pchip .pc-n{font-size:10px;margin-top:3px;color:var(--ink);font-weight:700;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:60px}
+  .pchip.win .pc-e{transform:scale(1.18);box-shadow:0 0 26px currentColor,0 0 40px currentColor}
+  .bottle{position:absolute;left:50%;top:50%;width:18px;height:42%;margin-left:-9px;transform-origin:50% 100%;
+    transform:translateY(-100%) rotate(0deg);transition:transform 3.4s cubic-bezier(.17,.67,.21,1);z-index:5}
+  .bottle .neck{position:absolute;top:0;left:50%;width:8px;height:38%;margin-left:-4px;border-radius:6px 6px 2px 2px;
+    background:linear-gradient(180deg,#39ff14,#15a800);box-shadow:0 0 14px #39ff14}
+  .bottle .body{position:absolute;bottom:0;left:0;width:18px;height:64%;border-radius:8px 8px 12px 12px;
+    background:linear-gradient(180deg,#1bd0e6,#0a6c7a);box-shadow:0 0 16px #00e5ff88}
+
+  /* ---------- KINGS CUP ---------- */
+  .playcard{width:130px;height:184px;margin:14px auto;border-radius:16px;background:#fdfdff;color:#111;
+    position:relative;box-shadow:0 10px 30px #000a,0 0 26px var(--pc,#9d6bff)55;display:flex;align-items:center;justify-content:center}
+  .playcard .rk{font-size:54px;font-weight:900}
+  .playcard .st{position:absolute;font-size:22px}
+  .playcard .st.tl{top:8px;left:10px}
+  .playcard .st.br{bottom:8px;right:10px;transform:rotate(180deg)}
+  .playcard.red{color:#e2274c}
+  .deckmeta{color:var(--muted);font-size:12px;margin-top:6px}
+  .cuprow{font-size:13px;color:var(--blr);margin-top:8px;font-weight:700}
+
+  @media(min-width:1100px){.screen{padding-top:26px}}
+</style>
+</head>
+<body>
+
+<!-- ============ HOME / HUB ============ -->
+<div id="home" class="screen on">
+  <div class="logo">NAMMA NIGHTS</div>
+  <div class="tag">Bangalore Game Night Hub · one squad, many games · drink responsibly 🍻</div>
+
+  <div class="card">
+    <div class="secttl">Your Squad</div>
+    <div class="counter">
+      <button id="minus" onclick="changeCount(-1)">−</button>
+      <div><div class="n" id="countLabel">5</div><div class="lbl">players</div></div>
+      <button id="plus" onclick="changeCount(1)">+</button>
+    </div>
+    <div id="rows"></div>
+    <div class="hint">Tap a character to change it. Names &amp; squad are saved automatically and shared across every game.</div>
+  </div>
+
+  <div class="grid" id="gameGrid"></div>
+  <div class="hint">Built for the TV — tap ⛶ inside a game to go fullscreen, or press F11 on a PC.</div>
+</div>
+
+<!-- ============ SPIN THE BOTTLE ============ -->
+<div id="bottle" class="screen">
+  <div class="topbar">
+    <button class="ghostbtn" onclick="go('home')">← Hub</button>
+    <div class="gtitle">🍾 Spin the Bottle</div>
+    <button class="ghostbtn" onclick="toggleFullscreen()">⛶</button>
+  </div>
+  <div class="stage">
+    <div class="arena" id="arena"><div class="bottle" id="bottleEl"><div class="neck"></div><div class="body"></div></div></div>
+    <button class="bigbtn alt" id="spinBtn" onclick="spinBottle()">Spin the bottle</button>
+    <div id="bottleResult"></div>
+  </div>
+</div>
+
+<!-- ============ MOST LIKELY TO ============ -->
+<div id="mostlikely" class="screen">
+  <div class="topbar">
+    <button class="ghostbtn" onclick="go('home')">← Hub</button>
+    <div class="gtitle">🫵 Most Likely To</div>
+    <button class="ghostbtn" onclick="toggleFullscreen()">⛶</button>
+  </div>
+  <div class="stage">
+    <div class="panel" style="--pc:var(--purple)">
+      <div style="text-align:center"><span class="badge" style="background:var(--purple)">Who's most likely…</span></div>
+      <div class="emoji">🫵</div>
+      <div class="body" id="mlText">Tap below to start.</div>
+      <div class="meta">On the count of 3, everyone points. Most votes drinks (2 sips). Tie = both drink.</div>
+    </div>
+    <button class="bigbtn" onclick="nextMostLikely()">Next prompt ➜</button>
+  </div>
+</div>
+
+<!-- ============ KINGS CUP ============ -->
+<div id="kings" class="screen">
+  <div class="topbar">
+    <button class="ghostbtn" onclick="go('home')">← Hub</button>
+    <div class="gtitle">👑 Kings Cup</div>
+    <button class="ghostbtn" onclick="toggleFullscreen()">⛶</button>
+  </div>
+  <div class="stage">
+    <div class="panel" style="--pc:var(--blr)">
+      <div class="playcard" id="kcCard"><div class="rk">🍺</div></div>
+      <div class="deckmeta" id="kcMeta">Full deck ready — 52 cards.</div>
+      <div class="cuprow" id="kcCup">King's Cup: 0 / 4 kings poured.</div>
+      <div class="body" id="kcRule" style="font-size:18px">Draw a card to begin.</div>
+    </div>
+    <button class="bigbtn" id="kcBtn" onclick="drawKing()">Draw a card 🃏</button>
+  </div>
+</div>
+
+<script>
+/* =================== SHARED SQUAD =================== */
+const COLORS=['#ff2e63','#00e5ff','#ffd23f','#39ff14','#ff8c1a','#9d6bff','#ff32e6','#1affd5'];
+const CHARACTERS=[
+  {e:'🛺',n:'Auto Anna'},{e:'🍺',n:'Toit Tiger'},{e:'☕',n:'Filter Coffee'},
+  {e:'🏍️',n:'Swiggy Speedster'},{e:'🦜',n:'Cubbon Parrot'},{e:'🕺',n:'Phoenix Floor-Filler'},
+  {e:'👽',n:'Crypto Bro'},{e:'🐅',n:'Tipsy Tiger'},{e:'🥥',n:'Tender Coconut'},
+  {e:'🦦',n:'Sarjapur Otter'},{e:'🦩',n:'Brunch Flamingo'},{e:'🐉',n:'Traffic Dragon'},
+];
+const MINP=3,MAXP=8;
+let count=5;
+let charSel=[0,1,2,3,4,5,6,7];
+let names=['','','','','','','',''];
+
+function saveSquad(){
+  try{localStorage.setItem('nnSquad',JSON.stringify({
+    names:names.slice(0,count).map((n,i)=>n.trim()||('Player '+(i+1))),
+    chars:charSel.slice(0,count),count
+  }));}catch(e){}
+}
+function loadSquad(){
+  try{const s=JSON.parse(localStorage.getItem('nnSquad')||'null');
+    if(s&&s.names&&s.names.length){
+      count=Math.max(MINP,Math.min(MAXP,s.names.length));
+      s.names.forEach((n,i)=>{if(i<MAXP)names[i]=(/^Player \d+$/.test(n))?'':n;});
+      if(Array.isArray(s.chars))s.chars.forEach((c,i)=>{if(i<MAXP&&typeof c==='number')charSel[i]=c%CHARACTERS.length;});
+    }}catch(e){}
+}
+function renderSquad(){
+  // pull current input values first
+  for(let i=0;i<MAXP;i++){const el=document.getElementById('nm'+i);if(el)names[i]=el.value;}
+  const box=document.getElementById('rows');box.innerHTML='';
+  for(let i=0;i<count;i++){
+    const ch=CHARACTERS[charSel[i]];const row=document.createElement('div');row.className='prow';
+    row.innerHTML=`<span class="dot" style="color:${COLORS[i]};background:${COLORS[i]}"></span>
+      <button class="charbtn" onclick="cycleChar(${i})"><span class="cemoji">${ch.e}</span><span>${ch.n}</span></button>
+      <input type="text" id="nm${i}" maxlength="14" placeholder="Player ${i+1}" value="${(names[i]||'').replace(/"/g,'&quot;')}"
+        oninput="names[${i}]=this.value;saveSquad()" />`;
+    box.appendChild(row);
+  }
+  document.getElementById('countLabel').textContent=count;
+  document.getElementById('minus').disabled=(count<=MINP);
+  document.getElementById('plus').disabled=(count>=MAXP);
+  saveSquad();
+}
+function changeCount(d){count=Math.max(MINP,Math.min(MAXP,count+d));renderSquad();}
+function cycleChar(i){
+  const used=charSel.slice(0,count).filter((_,k)=>k!==i);
+  let c=charSel[i];do{c=(c+1)%CHARACTERS.length;}while(used.includes(c));
+  charSel[i]=c;renderSquad();
+}
+function squad(){
+  const out=[];
+  for(let i=0;i<count;i++)out.push({name:(names[i]||'').trim()||('Player '+(i+1)),color:COLORS[i],char:CHARACTERS[charSel[i]]});
+  return out;
+}
+
+/* =================== NAV =================== */
+function go(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));
+  document.getElementById(id).classList.add('on');
+  window.scrollTo(0,0);
+  if(id==='bottle')setupBottle();
+  if(id==='mostlikely'){resetDrawer('ml');document.getElementById('mlText').textContent='Tap “Next prompt” to start.';}
+  if(id==='kings')resetKings();
+}
+function openNamma(){saveSquad();location.href='nammanights.html';}
+function toggleFullscreen(){
+  const el=document.documentElement;
+  if(!document.fullscreenElement&&!document.webkitFullscreenElement){
+    (el.requestFullscreen||el.webkitRequestFullscreen||function(){}).call(el);
+  }else{(document.exitFullscreen||document.webkitExitFullscreen||function(){}).call(document);}
+}
+
+/* =================== GAME GRID =================== */
+const GAMES=[
+  {id:'namma',e:'🎲',n:'Namma Nights',d:'The full neon board game — dares, truths, power-ups, paranoia & CHAOS.',c:'var(--dare)',tag:'Board',fn:'openNamma()'},
+  {id:'bottle',e:'🍾',n:'Spin the Bottle',d:'Bottle picks a victim. Truth, Dare or Sip — your call.',c:'var(--truth)',tag:'Party',fn:"go('bottle')"},
+  {id:'mostlikely',e:'🫵',n:'Most Likely To',d:'Point on 3. Most votes drinks. Pure friend-group carnage.',c:'var(--purple)',tag:'Group',fn:"go('mostlikely')"},
+  {id:'kings',e:'👑',n:"Kings Cup",d:'Draw cards, trigger rules. 4th king downs the King’s Cup.',c:'var(--blr)',tag:'Cards',fn:"go('kings')"},
+];
+function renderGrid(){
+  const g=document.getElementById('gameGrid');g.innerHTML='';
+  GAMES.forEach(x=>{
+    const d=document.createElement('button');d.className='game';d.style.setProperty('--gc',x.c);
+    d.setAttribute('onclick',x.fn);
+    d.innerHTML=`<span class="gp">${x.tag}</span><div class="ge">${x.e}</div>
+      <div class="gn">${x.n}</div><div class="gd">${x.d}</div>`;
+    g.appendChild(d);
+  });
+}
+
+/* =================== CONTENT =================== */
+const DECKS={
+  truth:[
+    "{p}: who in this room would you bail out of jail first?",
+    "{p}: most embarrassing thing you've done at a club in Bangalore.",
+    "{p}: rank everyone here by who you'd trust with your phone unlocked.",
+    "{p}: last person you stalked on Instagram — describe them, no names.",
+    "{p}: what's a secret you've kept from someone in this room?",
+    "{p}: who here gives the worst advice and why?",
+    "{p}: drunkest you've ever been — what happened?",
+    "{p}: which footballer would you trade your love life to play like?",
+    "{p}: who in this group would survive longest in a zombie apocalypse?",
+    "{p}: confess the pettiest reason you've ghosted someone.",
+    "{p}: biggest lie you told your parents in school days.",
+    "{p}: who here would you swap lives with for a week?",
+    "{p}: what's the most you've ever spent on a single drunk night out?",
+    "{p}: rate your own last relationship out of 10 and defend it.",
+    "{p}: which teammate here would you NOT want in a penalty shootout?",
+    "{p}: who in this room has changed the most since school?",
+    "{p}: what's a hill you'll die on that everyone here disagrees with?",
+    "{p}: who'd you call at 3am with no questions asked — and who definitely not?",
+    "{p}: most reckless thing you did as a teenager with this crew.",
+    "{p}: which app on your phone would expose you the most?",
+    "{p}: who here would make the best and worst flatmate?",
+    "{p}: a time you genuinely embarrassed yourself in front of a crush.",
+    "{p}: what's your most controversial Bangalore food take?",
+    "{p}: who in this room talks the biggest game but delivers the least?",
+  ],
+  dare:[
+    "{p}: do your best impression of someone in this room. Group guesses.",
+    "{p}: text the 3rd person in your chats 'I had a dream about you last night'. Screenshot or 3 sips.",
+    "{p}: speak in a fake accent until your next turn. Slip = drink.",
+    "{p}: do 10 pushups or finish your drink.",
+    "{p}: let the group pick your next WhatsApp status for 1 hour.",
+    "{p}: call a friend (not here) and sing them happy birthday. It's not their birthday.",
+    "{p}: do your most dramatic football goal celebration right now.",
+    "{p}: post the 7th photo in your camera roll to your story. Or 3 sips.",
+    "{p}: talk in rhymes until your next turn. Fail = drink.",
+    "{p}: let the person on your left send one text from your phone.",
+    "{p}: do your best drunk-uncle-at-a-wedding dance for 15 seconds.",
+    "{p}: swap one item of clothing with the person on your right.",
+    "{p}: do your best commentary of the room like it's an EPL match.",
+    "{p}: hold a plank till the next person rolls. Drop = drink.",
+    "{p}: imitate how each person in the room laughs.",
+    "{p}: say something nice and something brutal about the person across from you.",
+    "{p}: do an ad-read selling tap water like it's premium beer.",
+    "{p}: let the group give you a new nickname for the rest of the night.",
+    "{p}: re-enact your most recent argument — play both people.",
+    "{p}: balance on one leg and finish a sentence about your ex.",
+    "{p}: do your worst pickup line on the person to your left.",
+    "{p}: act out riding a Yulu drunk through Indiranagar. Sound effects mandatory.",
+  ],
+  sip:[
+    "{p} drinks. No reason. Vibes.",
+    "{p} picks someone to drink with them. Cheers!",
+    "Everyone who's checked their phone in the last 5 mins drinks — including {p}.",
+    "{p} starts a waterfall. Everyone drinks till the person before them stops.",
+    "{p} and the person on their right both take 2 sips.",
+    "{p}: name 3 EPL clubs in 5 seconds or drink.",
+    "{p} drinks for every vowel in their full name. Good luck.",
+    "Last person to raise their hand drinks. GO. ({p} too)",
+    "{p}: finish your sentence with 'and that's on Bangalore traffic' or drink.",
+    "{p} gives out 3 sips however they like.",
+    "Everyone wearing black drinks. Nobody? {p} drinks twice.",
+    "{p}: cheers the person you've known longest and both drink.",
+    "{p} drinks if they've been to Toit more than 5 times. (You have.)",
+    "Group vote: is {p} the most or least responsible here? Loser of the vote drinks.",
+  ],
+  ml:[
+    "…to get kicked out of a club?",
+    "…to text their ex tonight?",
+    "…to cry during a football match?",
+    "…to become a millionaire first?",
+    "…to ghost the group chat for a month?",
+    "…to start a fight with an auto driver?",
+    "…to marry first?",
+    "…to move abroad and never come back?",
+    "…to lose their phone on a night out?",
+    "…to fall asleep first tonight?",
+    "…to forget tonight entirely?",
+    "…to date someone the group hates?",
+    "…to end up in a viral video?",
+    "…to suggest a 3am Nandi Hills drive?",
+    "…to crash a Yulu while drunk?",
+    "…to fake an emergency to leave early?",
+    "…to become a fitness influencer?",
+    "…to win an argument they're completely wrong about?",
+    "…to spend their last 500 rupees on a round?",
+    "…to get back with an ex they shouldn't?",
+    "…to start a podcast nobody asked for?",
+    "…to be late to their own wedding?",
+    "…to flirt their way out of a parking ticket?",
+    "…to accidentally like a 3-year-old photo while stalking?",
+    "…to romanticize a situationship?",
+    "…to peak in their school football days?",
+    "…to be the designated 'mom' of the group?",
+    "…to overshare with a stranger at a bar?",
+    "…to quit their job on a whim?",
+    "…to survive the longest without alcohol?",
+    "…to get a tattoo they'll regret?",
+    "…to be the worst driver here — track and road?",
+    "…to lie about how many drinks they've had?",
+    "…to start crying-laughing at the wrong moment?",
+    "…to fall for an obvious scam?",
+    "…to be famous for something stupid?",
+    "…to text 'you up?' tonight?",
+    "…to lose a bet and actually pay up?",
+    "…to plan the next trip and bail on it?",
+    "…to be the last one standing tonight?",
+  ],
+};
+/* no-repeat drawers */
+const drawers={};
+function resetDrawer(k){const a=DECKS[k].slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}drawers[k]=a;}
+function draw(k){if(!drawers[k]||!drawers[k].length)resetDrawer(k);return drawers[k].pop();}
+function fill(s){
+  const sq=squad();const me=sq[Math.floor(Math.random()*sq.length)];
+  let other=sq[Math.floor(Math.random()*sq.length)];let g=0;while(other===me&&sq.length>1&&g++<10)other=sq[Math.floor(Math.random()*sq.length)];
+  return s.replace(/\{p\}/g,me.name).replace(/\{o\}/g,other.name);
+}
+
+/* =================== SPIN THE BOTTLE =================== */
+let bottleAngle=0,bottleBusy=false;
+function setupBottle(){
+  const sq=squad();const arena=document.getElementById('arena');
+  arena.querySelectorAll('.pchip').forEach(e=>e.remove());
+  const R=arena.clientWidth/2-34;
+  sq.forEach((p,i)=>{
+    const deg=i*360/sq.length-90;const rad=deg*Math.PI/180;
+    const x=Math.cos(rad)*R,y=Math.sin(rad)*R;
+    const chip=document.createElement('div');chip.className='pchip';chip.id='chip'+i;chip.style.color=p.color;
+    chip.style.transform=`translate(${x}px,${y}px)`;
+    chip.innerHTML=`<div class="pc-e">${p.char.e}</div><div class="pc-n">${p.name}</div>`;
+    arena.appendChild(chip);
+  });
+  document.getElementById('bottleResult').innerHTML='';
+  document.getElementById('spinBtn').disabled=false;
+  document.getElementById('spinBtn').textContent='Spin the bottle';
+}
+function spinBottle(){
+  if(bottleBusy)return;bottleBusy=true;
+  const sq=squad();const n=sq.length;const target=Math.floor(Math.random()*n);
+  document.querySelectorAll('.pchip').forEach(c=>c.classList.remove('win'));
+  document.getElementById('bottleResult').innerHTML='';
+  document.getElementById('spinBtn').disabled=true;
+  const base=bottleAngle-(bottleAngle%360);
+  bottleAngle=base+360*5+target*360/n;
+  document.getElementById('bottleEl').style.transform=`translateY(-100%) rotate(${bottleAngle}deg)`;
+  setTimeout(()=>{
+    document.getElementById('chip'+target).classList.add('win');
+    const p=sq[target];
+    document.getElementById('bottleResult').innerHTML=
+      `<div class="panel" style="--pc:${p.color}"><div class="body" style="font-size:22px">${p.char.e} ${p.name}, you're up!</div>
+        <div class="choices">
+          <button class="cT" onclick="bottleCard('truth')">Truth</button>
+          <button class="cD" onclick="bottleCard('dare')">Dare</button>
+          <button class="cS" onclick="bottleCard('sip')">Sip</button>
+        </div></div>`;
+    bottleBusy=false;
+  },3450);
+}
+function bottleCard(type){
+  const meta={truth:{c:'var(--truth)',e:'🤔',l:'TRUTH'},dare:{c:'var(--dare)',e:'🔥',l:'DARE'},sip:{c:'var(--blr)',e:'🍺',l:'SIP'}}[type];
+  const winName=document.querySelector('.pchip.win .pc-n').textContent;
+  let text=draw(type).replace(/\{p\}/g,winName);
+  const sq=squad();let other=sq[Math.floor(Math.random()*sq.length)].name;
+  text=text.replace(/\{o\}/g,other);
+  document.getElementById('bottleResult').innerHTML=
+    `<div class="panel" style="--pc:${meta.c}">
+      <div style="text-align:center"><span class="badge" style="background:${meta.c}">${meta.l}</span></div>
+      <div class="emoji">${meta.e}</div><div class="body">${text}</div>
+      <button class="bigbtn alt" onclick="setupBottle()">Spin again 🍾</button></div>`;
+}
+
+/* =================== MOST LIKELY TO =================== */
+function nextMostLikely(){
+  document.getElementById('mlText').textContent='Who’s most likely '+draw('ml');
+}
+
+/* =================== KINGS CUP =================== */
+const KINGS={
+  A:{n:'Ace · Waterfall',d:'Everyone drinks together. You can’t stop until the person before you stops. {p} starts.'},
+  '2':{n:'2 · You',d:'{p}, pick someone to take a drink.'},
+  '3':{n:'3 · Me',d:'{p} drinks. Tough luck.'},
+  '4':{n:'4 · Floor',d:'Everyone touch the floor — last one drinks.'},
+  '5':{n:'5 · Thumb Master',d:'{p}: drop your thumb on the table any time till the next 5. Last to copy drinks.'},
+  '6':{n:'6 · Left',d:'Person to {p}’s left drinks.'},
+  '7':{n:'7 · Heaven',d:'Everyone reach for the sky — last hand up drinks.'},
+  '8':{n:'8 · Mate',d:'{p} picks a drinking buddy — they drink whenever {p} drinks.'},
+  '9':{n:'9 · Rhyme',d:'{p} says a word; go round rhyming. First to fail or repeat drinks.'},
+  '10':{n:'10 · Categories',d:'{p} picks a category (e.g. Bangalore clubs). Go round — first to blank drinks.'},
+  J:{n:'Jack · New Rule',d:'{p} makes a rule everyone must follow for the rest of the game. Break it = drink.'},
+  Q:{n:'Queen · Question Master',d:'{p} is Question Master. Anyone who answers their question drinks — till the next Queen.'},
+  K:{n:'King · King’s Cup',d:'Pour some of your drink into the center cup. The 4th King downs the whole thing. 💀'},
+};
+const RANKS=['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
+const SUITS=[{s:'♠',r:0},{s:'♥',r:1},{s:'♦',r:1},{s:'♣',r:0}];
+let kcDeck=[],kcKings=0;
+function resetKings(){
+  kcDeck=[];RANKS.forEach(r=>SUITS.forEach(su=>kcDeck.push({r,s:su.s,red:su.r})));
+  for(let i=kcDeck.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[kcDeck[i],kcDeck[j]]=[kcDeck[j],kcDeck[i]];}
+  kcKings=0;
+  document.getElementById('kcCard').className='playcard';
+  document.getElementById('kcCard').innerHTML='<div class="rk">🍺</div>';
+  document.getElementById('kcMeta').textContent='Full deck ready — 52 cards.';
+  document.getElementById('kcCup').textContent='King’s Cup: 0 / 4 kings poured.';
+  document.getElementById('kcRule').textContent='Draw a card to begin.';
+  document.getElementById('kcBtn').disabled=false;
+  document.getElementById('kcBtn').textContent='Draw a card 🃏';
+}
+function drawKing(){
+  if(!kcDeck.length){resetKings();return;}
+  const c=kcDeck.pop();const info=KINGS[c.r];
+  if(c.r==='K')kcKings++;
+  const card=document.getElementById('kcCard');
+  card.className='playcard'+(c.red?' red':'');
+  card.innerHTML=`<span class="st tl">${c.s}</span><div class="rk">${c.r}</div><span class="st br">${c.s}</span>`;
+  document.getElementById('kcMeta').textContent=kcDeck.length+' cards left.';
+  document.getElementById('kcCup').textContent=`King’s Cup: ${kcKings} / 4 kings poured.`;
+  let rule=fill(info.d);
+  if(c.r==='K'&&kcKings>=4)rule='💀 FOURTH KING! Whoever drew it downs the entire King’s Cup. Game over — reset for a new round.';
+  document.getElementById('kcRule').innerHTML='<b>'+info.n+'</b><br>'+rule;
+  if(!kcDeck.length){document.getElementById('kcBtn').textContent='Deck empty — reshuffle 🔁';}
+}
+
+/* =================== BOOT =================== */
+loadSquad();renderSquad();renderGrid();
+</script>
+</body>
+</html>

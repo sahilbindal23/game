@@ -275,6 +275,7 @@
     <div class="logo">NAMMA NIGHTS</div>
     <div style="display:flex;gap:8px">
       <button class="ghostbtn" id="fsBtn" onclick="toggleFullscreen()" title="fill the screen / TV">⛶ Fullscreen</button>
+      <a class="ghostbtn" href="index.html" style="text-decoration:none" title="back to the game hub">⌂ Hub</a>
       <button class="ghostbtn" onclick="if(confirm('Back to home screen? Current game will end.'))returnHome()">Home</button>
     </div>
   </div>
@@ -1548,7 +1549,24 @@ function showFinal(){
   document.body.appendChild(ov);
 }
 
+function loadSquadFromHub(){
+  try{
+    const s=JSON.parse(localStorage.getItem('nnSquad')||'null');
+    if(s&&Array.isArray(s.names)&&s.names.length){
+      count=Math.max(3,Math.min(6,s.names.length));
+      const used=[];
+      if(Array.isArray(s.chars))for(let i=0;i<count;i++){
+        let c=(typeof s.chars[i]==='number')?s.chars[i]%CHARACTERS.length:i;
+        while(used.includes(c))c=(c+1)%CHARACTERS.length;
+        charSel[i]=c;used.push(c);
+      }
+      window.__squadNames=s.names.slice(0,6);
+    }
+  }catch(e){}
+}
+loadSquadFromHub();
 renderSetup();
+if(window.__squadNames){window.__squadNames.forEach((n,i)=>{const el=document.getElementById('nm'+i);if(el&&n&&!/^Player \d+$/.test(n))el.value=n;});}
 </script>
 </body>
 </html>
