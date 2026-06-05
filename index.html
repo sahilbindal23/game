@@ -160,6 +160,10 @@
   .mbtn.red{background:linear-gradient(90deg,#ff2e63,#ff5e7e)}
   .mbtn.black{background:linear-gradient(90deg,#2a2a3a,#555)}
   .mbtn.go{background:linear-gradient(90deg,var(--blr),#00e5ff);color:#042018}
+  .rowsel{display:flex;align-items:center;justify-content:center;gap:18px;margin:14px 0}
+  .rowsel .ghostbtn{font-size:24px;width:50px;height:50px;border-radius:50%;font-weight:900;display:inline-flex;align-items:center;justify-content:center;padding:0}
+  .rowval{font-size:36px;font-weight:900;min-width:96px;text-align:center;line-height:1;color:var(--dare)}
+  .rowval span{display:block;font-size:12px;color:var(--muted);font-weight:700;margin-top:2px}
 
   /* ---------- FOOTY WATCH-PARTY ---------- */
   .fwteams{display:flex;align-items:center;gap:8px;justify-content:center;margin:12px 0}
@@ -1102,19 +1106,24 @@ function cardHTML(c,o){o=o||{};
   return `<div class="rcard ${c.red?'red':''} ${o.small?'sm':''} ${o.hl?'hl':''}"><span>${c.r}</span><span>${c.s}</span></div>`;}
 let rtb=null;
 function startRTB(){
-  rtb={phase:'deal',deck:rtbDeck(),
-    players:squad().map(p=>({name:p.name,color:p.color,hand:[]})),
+  const pl=squad();
+  let avail=52-4*pl.length,m=1;while((m+1)*(m+2)/2<=avail)m++;m=Math.max(2,Math.min(7,m)); // max rows that fit the deck
+  rtb={phase:'setup',deck:rtbDeck(),
+    players:pl.map(p=>({name:p.name,color:p.color,hand:[]})),
+    rows:Math.min(4,m),maxRows:m,
     dealP:0,dealStep:0,lastResult:null,
     pyr:[],pyrFlat:[],pyrIdx:-1,reveal:null,rider:-1,bus:null};
   renderRTB();
 }
+function rtbChangeRows(d){rtb.rows=Math.max(2,Math.min(rtb.maxRows,rtb.rows+d));renderRTB();}
+function rtbStartDeal(){rtb.phase='deal';renderRTB();}
 function buildPyramid(){
-  const counts=[4,3,2,1], sips=[2,4,8,16]; // bottom -> top
   rtb.pyr=[];rtb.pyrFlat=[];
-  for(let row=0;row<counts.length;row++){
+  for(let row=0;row<rtb.rows;row++){ // row 0 = base
+    const count=rtb.rows-row, sips=Math.pow(2,row+1); // base widest & worth 2; apex narrow & worth most
     const cards=[];
-    for(let k=0;k<counts[row];k++){const e={card:rtb.deck.pop(),sips:sips[row],row,flat:rtb.pyrFlat.length};cards.push(e);rtb.pyrFlat.push(e);}
-    rtb.pyr.push({sips:sips[row],cards});
+    for(let k=0;k<count;k++){const e={card:rtb.deck.pop(),sips,row,flat:rtb.pyrFlat.length};cards.push(e);rtb.pyrFlat.push(e);}
+    rtb.pyr.push({sips,cards});
   }
   rtb.pyrIdx=-1;
 }
@@ -1183,7 +1192,8 @@ function rtbBusRestart(){rtb.bus.failed=false;rtb.bus.lastResult=null;rtbBusRese
 function renderRTB(){
   const el=document.getElementById('rtbStage');if(!el||!rtb)return;
   let h='';
-  if(rtb.phase==='deal')h=rtbRenderDeal();
+  if(rtb.phase==='setup')h=rtbRenderSetup();
+  else if(rtb.phase==='deal')h=rtbRenderDeal();
   else if(rtb.phase==='pyramid')h=rtbRenderPyr();
   else if(rtb.phase==='busselect')h=rtbRenderSelect();
   else if(rtb.phase==='bus')h=rtbRenderBus();
@@ -1196,6 +1206,19 @@ function rtbGuessBtns(prefix){
   if(s===1)return `<div class="rbtns"><button class="mbtn go" onclick="${fn}('hi')">⬆️ Higher</button><button class="mbtn go" onclick="${fn}('lo')">⬇️ Lower</button></div>`;
   if(s===2)return `<div class="rbtns"><button class="mbtn go" onclick="${fn}('in')">↔️ Inside</button><button class="mbtn go" onclick="${fn}('out')">⏏️ Outside</button></div>`;
   return `<div class="rbtns">${RTB_SUITS.map(su=>`<button class="mbtn ${su.red?'red':'black'}" onclick="${fn}('${su.s}')">${su.s}</button>`).join('')}</div>`;
+}
+function rtbRenderSetup(){
+  const rows=rtb.rows,total=rows*(rows+1)/2,sipList=[];
+  for(let i=1;i<=rows;i++)sipList.push(Math.pow(2,i));
+  return `<div style="text-align:center"><span class="badge" style="background:var(--dare)">Setup · Pyramid size</span></div>
+  <div class="body" style="font-size:17px">How tall should the sip pyramid be?</div>
+  <div class="rowsel">
+    <button class="ghostbtn" onclick="rtbChangeRows(-1)" ${rows<=2?'disabled':''}>−</button>
+    <div class="rowval">${rows}<span>rows</span></div>
+    <button class="ghostbtn" onclick="rtbChangeRows(1)" ${rows>=rtb.maxRows?'disabled':''}>+</button>
+  </div>
+  <div class="meta">Rows worth <b>${sipList.join(' · ')}</b> sips (base → apex) · ${total} cards on the board.${rows>=rtb.maxRows?'<br>That\'s the most that fits the deck with '+rtb.players.length+' players.':''}</div>
+  <button class="bigbtn" onclick="rtbStartDeal()">Deal the cards ➜</button>`;
 }
 function rtbRenderDeal(){
   const p=rtb.players[rtb.dealP],n=rtb.players.length;
