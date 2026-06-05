@@ -126,6 +126,19 @@
     animation:bflash .65s ease-out forwards}
   @keyframes bflash{0%{opacity:0;transform:scale(.35)}12%{opacity:1}100%{opacity:0;transform:scale(1.7)}}
 
+  /* ---------- TRIVIA CLASH ---------- */
+  .tboard{display:flex;gap:10px;margin-bottom:6px}
+  .tcard{flex:1;border-radius:14px;padding:10px 8px;text-align:center;border:2px solid #ffffff18;
+    background:#ffffff08;transition:all .2s}
+  .tcard .tn{font-size:13px;font-weight:800;letter-spacing:.3px}
+  .tcard .ts{font-size:30px;font-weight:900;line-height:1.1;margin-top:2px}
+  .tcard .tm{font-size:10px;color:var(--muted);margin-top:3px;line-height:1.3}
+  .tcard.turn{border-color:var(--tc);background:color-mix(in srgb,var(--tc) 16%,transparent);
+    box-shadow:0 0 18px -2px var(--tc)}
+  .triviaA{font-size:22px;font-weight:900;line-height:1.35;background:#06231a;border:1px solid var(--blr);
+    border-radius:14px;padding:16px;margin:12px 0;color:#39ffd5;box-shadow:inset 0 0 22px #39ff1433}
+  .turnnote{font-size:14px;font-weight:800;margin-top:4px}
+
   @media(min-width:1100px){.screen{padding-top:26px}}
 </style>
 </head>
@@ -229,6 +242,31 @@
   </div>
 </div>
 
+<!-- ============ TRIVIA CLASH ============ -->
+<div id="trivia" class="screen">
+  <div class="topbar">
+    <button class="ghostbtn" onclick="go('home')">← Hub</button>
+    <div class="gtitle">🧠 Trivia Clash</div>
+    <button class="ghostbtn" onclick="toggleFullscreen()">⛶</button>
+  </div>
+  <div class="stage">
+    <div class="panel" style="--pc:var(--blr)">
+      <div class="tboard" id="triviaBoard"></div>
+      <div class="turnnote" id="triviaTurn">Loading teams…</div>
+      <div style="text-align:center;margin-top:8px"><span class="badge" id="triviaCat" style="background:var(--blr)">Trivia</span></div>
+      <div class="body" id="triviaQ" style="font-size:21px">Tap “Next question” to start.</div>
+      <div class="triviaA hidden" id="triviaA"></div>
+      <div class="meta" id="triviaHint">Answering team confers & answers out loud. Right answer → the OTHER team drinks. 🍻</div>
+    </div>
+    <button class="bigbtn alt hidden" id="triviaReveal" onclick="revealTrivia()">👁 Reveal answer</button>
+    <div id="triviaScore" class="hidden" style="display:flex;gap:10px">
+      <button class="bigbtn" style="flex:1;background:linear-gradient(90deg,#39ff14,#00e5ff);color:#04210f" onclick="scoreTrivia(true)">✓ Correct</button>
+      <button class="bigbtn" style="flex:1;background:linear-gradient(90deg,#ff2e63,#ff8c1a);color:#fff" onclick="scoreTrivia(false)">✗ Missed</button>
+    </div>
+    <button class="bigbtn" id="triviaNext" onclick="nextTrivia()">Next question ➜</button>
+  </div>
+</div>
+
 <script>
 /* =================== SHARED SQUAD =================== */
 const COLORS=['#ff2e63','#00e5ff','#ffd23f','#39ff14','#ff8c1a','#9d6bff','#ff32e6','#1affd5'];
@@ -296,6 +334,7 @@ function go(id){
   if(id==='kings')resetKings();
   if(id==='paranoia'){resetDrawer('paranoia');paraIdx=0;startParanoia();}
   if(id==='bomb'){resetDrawer('bombcat');resetBomb();}
+  if(id==='trivia')startTrivia();
 }
 function openNamma(){saveSquad();location.href='nammanights.html';}
 function toggleFullscreen(){
@@ -312,6 +351,7 @@ const GAMES=[
   {id:'kings',e:'👑',n:"Kings Cup",d:'Our own chaotic ruleset — footy, dares, rhymes, accents & the King’s Cup.',c:'var(--blr)',tag:'Cards',fn:"go('kings')"},
   {id:'paranoia',e:'😈',n:'Paranoia',d:'Whisper a question. They answer out loud with a name — but the question stays a mystery.',c:'var(--special)',tag:'Secrets',fn:"go('paranoia')"},
   {id:'bomb',e:'💣',n:'Bomb Pass',d:'Ticking bomb + a category. Pass the phone answering — holder when it blows drinks.',c:'var(--crazy)',tag:'Fast',fn:"go('bomb')"},
+  {id:'trivia',e:'🧠',n:'Trivia Clash',d:'Two teams, one buzzer. Nail the question and the other team drinks.',c:'var(--blr)',tag:'Teams',fn:"go('trivia')"},
 ];
 function renderGrid(){
   const g=document.getElementById('gameGrid');g.innerHTML='';
@@ -518,6 +558,72 @@ const DECKS={
     "Things you'd save in a fire",
     "Wrong reasons to text an ex",
   ],
+  trivia:[
+    /* ---- Football ---- */
+    {c:'⚽ Football',q:"Which country has won the most FIFA World Cups?",a:"Brazil (5 titles)"},
+    {c:'⚽ Football',q:"Who has won the most Ballon d'Or awards?",a:"Lionel Messi"},
+    {c:'⚽ Football',q:"Which club has won the most UEFA Champions League titles?",a:"Real Madrid"},
+    {c:'⚽ Football',q:"Where was the 2022 FIFA World Cup held?",a:"Qatar"},
+    {c:'⚽ Football',q:"Who scored the 'Hand of God' goal in 1986?",a:"Diego Maradona"},
+    {c:'⚽ Football',q:"Which two players are football's all-time top international scorers (men's)?",a:"Cristiano Ronaldo (then Ali Daei/Messi)"},
+    {c:'⚽ Football',q:"What is the maximum number of players a team can have on the pitch?",a:"11"},
+    {c:'⚽ Football',q:"Which English club is nicknamed 'The Red Devils'?",a:"Manchester United"},
+    {c:'⚽ Football',q:"Who won the 2024 UEFA European Championship (Euro 2024)?",a:"Spain"},
+    {c:'⚽ Football',q:"Which German club is based in Munich and is the most successful in Germany?",a:"Bayern Munich"},
+    {c:'⚽ Football',q:"Which country did Lionel Messi captain to the 2022 World Cup title?",a:"Argentina"},
+    {c:'⚽ Football',q:"What's the name of Barcelona's home stadium?",a:"Camp Nou (Spotify Camp Nou)"},
+    {c:'⚽ Football',q:"How long is a standard football match, excluding stoppage time?",a:"90 minutes"},
+    {c:'⚽ Football',q:"Which Egyptian forward is a Liverpool legend known as the 'Egyptian King'?",a:"Mohamed Salah"},
+    {c:'⚽ Football',q:"Who is the all-time top scorer in the Premier League?",a:"Alan Shearer (260)"},
+    {c:'⚽ Football',q:"Which nation hosts the Copa Libertadores' most successful club, Independiente?",a:"Argentina"},
+    /* ---- Bangalore / India ---- */
+    {c:'🛺 Bangalore',q:"What is the older, official-ish nickname of Bangalore for its parks and trees?",a:"The Garden City"},
+    {c:'🛺 Bangalore',q:"Which infamous junction is Bangalore's traffic-jam meme capital?",a:"Silk Board"},
+    {c:'🛺 Bangalore',q:"What is the name of Bangalore's large central park near MG Road?",a:"Cubbon Park"},
+    {c:'🛺 Bangalore',q:"Bangalore is the capital of which Indian state?",a:"Karnataka"},
+    {c:'🛺 Bangalore',q:"What's the official current name of the city (renamed in 2014)?",a:"Bengaluru"},
+    {c:'🛺 Bangalore',q:"Which hill station near Bangalore is famous for sunrise drives?",a:"Nandi Hills"},
+    {c:'🛺 Bangalore',q:"Bangalore is widely called the ___ Valley of India.",a:"Silicon Valley"},
+    {c:'🇮🇳 India',q:"What is the national animal of India?",a:"Bengal Tiger"},
+    {c:'🇮🇳 India',q:"Which river is considered the most sacred in India?",a:"The Ganges (Ganga)"},
+    {c:'🇮🇳 India',q:"In which city is the Taj Mahal located?",a:"Agra"},
+    {c:'🇮🇳 India',q:"Who is the highest run-scorer in international cricket?",a:"Sachin Tendulkar"},
+    {c:'🇮🇳 India',q:"What is the currency of India?",a:"Indian Rupee (INR)"},
+    {c:'🇮🇳 India',q:"Which Indian city is known as the 'City of Joy'?",a:"Kolkata"},
+    /* ---- General knowledge ---- */
+    {c:'🌍 World',q:"What is the largest planet in our solar system?",a:"Jupiter"},
+    {c:'🌍 World',q:"How many continents are there on Earth?",a:"7"},
+    {c:'🌍 World',q:"What is the capital of Australia?",a:"Canberra"},
+    {c:'🌍 World',q:"What is the smallest country in the world by area?",a:"Vatican City"},
+    {c:'🌍 World',q:"Which ocean is the largest?",a:"The Pacific Ocean"},
+    {c:'🌍 World',q:"What is the tallest mountain above sea level?",a:"Mount Everest"},
+    {c:'🌍 World',q:"What is the longest river in the world?",a:"The Nile (or Amazon, debated)"},
+    {c:'🔬 Science',q:"What gas do plants primarily absorb from the air?",a:"Carbon dioxide (CO₂)"},
+    {c:'🔬 Science',q:"What is the chemical symbol for gold?",a:"Au"},
+    {c:'🔬 Science',q:"How many bones are in the adult human body?",a:"206"},
+    {c:'🔬 Science',q:"What planet is known as the Red Planet?",a:"Mars"},
+    {c:'🔬 Science',q:"What is the powerhouse of the cell?",a:"The mitochondria"},
+    {c:'🔬 Science',q:"At what temperature (°C) does water boil at sea level?",a:"100°C"},
+    {c:'🔬 Science',q:"What is the hardest natural substance on Earth?",a:"Diamond"},
+    /* ---- Movies / Music / Pop ---- */
+    {c:'🎬 Movies',q:"Which movie features the line 'Why so serious?'",a:"The Dark Knight"},
+    {c:'🎬 Movies',q:"Who directed the films 'Inception' and 'Interstellar'?",a:"Christopher Nolan"},
+    {c:'🎬 Movies',q:"Which 2023 film about a doll became a billion-dollar hit?",a:"Barbie"},
+    {c:'🎬 Movies',q:"In which film franchise does the character Tony Stark appear?",a:"The Marvel / Avengers (MCU)"},
+    {c:'🎬 Bollywood',q:"Which actor is nicknamed 'King Khan' of Bollywood?",a:"Shah Rukh Khan"},
+    {c:'🎬 Bollywood',q:"Which 2022 Indian film with 'Naatu Naatu' won an Oscar for Best Song?",a:"RRR"},
+    {c:'🎵 Music',q:"Which artist released the album 'Midnights' in 2022?",a:"Taylor Swift"},
+    {c:'🎵 Music',q:"Which British band sang 'Bohemian Rhapsody'?",a:"Queen"},
+    {c:'🎵 Music',q:"Who is known as the 'King of Pop'?",a:"Michael Jackson"},
+    {c:'🎵 Music',q:"Which K-pop group sang 'Dynamite' and 'Butter'?",a:"BTS"},
+    /* ---- Random / fun ---- */
+    {c:'🍻 Random',q:"What is the main alcohol in a Margarita?",a:"Tequila"},
+    {c:'🍻 Random',q:"What does the 'IPA' beer style stand for?",a:"India Pale Ale"},
+    {c:'🍻 Random',q:"How many cards are in a standard deck (no jokers)?",a:"52"},
+    {c:'🍻 Random',q:"What spirit is the base of a Mojito?",a:"Rum (white rum)"},
+    {c:'🍻 Random',q:"In Monopoly, what colour is Boardwalk / the most expensive set (US)?",a:"Dark blue"},
+    {c:'🍻 Random',q:"How many sides does a hexagon have?",a:"6"},
+  ],
 };
 /* no-repeat drawers */
 const drawers={};
@@ -639,6 +745,71 @@ function bombBoom(){
   if(panel){panel.classList.remove('pshake');void panel.offsetWidth;panel.classList.add('pshake');
     setTimeout(()=>panel.classList.remove('pshake'),600);}
   explosionSound();
+}
+
+/* =================== TRIVIA CLASH =================== */
+let tvTeams=[[],[]],tvScore=[0,0],tvTurn=0,tvCur=null,tvRevealed=false;
+const TV_META=[{n:'Team A',e:'🔴',c:'#ff2e63'},{n:'Team B',e:'🔵',c:'#00e5ff'}];
+function buildTriviaTeams(){
+  const s=squad();tvTeams=[[],[]];
+  s.forEach((p,i)=>tvTeams[i%2].push(p.name)); // alternate so it's roughly balanced
+}
+function renderTriviaBoard(){
+  const b=document.getElementById('triviaBoard');b.innerHTML='';
+  TV_META.forEach((t,i)=>{
+    const d=document.createElement('div');
+    d.className='tcard'+(i===tvTurn?' turn':'');d.style.setProperty('--tc',t.c);
+    d.innerHTML=`<div class="tn" style="color:${t.c}">${t.e} ${t.n}</div>
+      <div class="ts">${tvScore[i]}</div>
+      <div class="tm">${tvTeams[i].join(' · ')||'—'}</div>`;
+    b.appendChild(d);
+  });
+  const t=TV_META[tvTurn];
+  document.getElementById('triviaTurn').innerHTML=`<span style="color:${t.c}">${t.e} ${t.n}</span>'s turn to answer`;
+}
+function startTrivia(){
+  buildTriviaTeams();resetDrawer('trivia');
+  tvScore=[0,0];tvTurn=0;tvCur=null;tvRevealed=false;
+  renderTriviaBoard();
+  document.getElementById('triviaCat').textContent='Trivia';
+  document.getElementById('triviaQ').textContent='Tap “Next question” to start.';
+  document.getElementById('triviaA').classList.add('hidden');
+  document.getElementById('triviaHint').textContent='Answering team confers & answers out loud. Right answer → the OTHER team drinks. 🍻';
+  document.getElementById('triviaReveal').classList.add('hidden');
+  document.getElementById('triviaScore').classList.add('hidden');
+  document.getElementById('triviaNext').classList.remove('hidden');
+  document.getElementById('triviaNext').textContent='Start ➜';
+}
+function nextTrivia(){
+  tvCur=draw('trivia');tvRevealed=false;
+  document.getElementById('triviaCat').textContent=tvCur.c;
+  document.getElementById('triviaQ').textContent=tvCur.q;
+  const a=document.getElementById('triviaA');a.classList.add('hidden');a.textContent='';
+  document.getElementById('triviaHint').textContent='Confer, lock in an answer out loud, then reveal.';
+  document.getElementById('triviaNext').classList.add('hidden');
+  document.getElementById('triviaScore').classList.add('hidden');
+  document.getElementById('triviaReveal').classList.remove('hidden');
+  renderTriviaBoard();
+}
+function revealTrivia(){
+  if(!tvCur)return; tvRevealed=true;
+  const a=document.getElementById('triviaA');a.textContent='✅ '+tvCur.a;a.classList.remove('hidden');
+  document.getElementById('triviaReveal').classList.add('hidden');
+  document.getElementById('triviaScore').classList.remove('hidden');
+  document.getElementById('triviaHint').textContent='Host: did they get it right?';
+}
+function scoreTrivia(correct){
+  const cur=TV_META[tvTurn], other=TV_META[1-tvTurn];
+  if(correct){
+    tvScore[tvTurn]++;
+    document.getElementById('triviaHint').innerHTML=`✅ <b style="color:${cur.c}">${cur.n}</b> nailed it — <b style="color:${other.c}">${other.n}</b> drinks! 🍺`;
+  }else{
+    document.getElementById('triviaHint').innerHTML=`❌ <b style="color:${cur.c}">${cur.n}</b> missed it — take a consolation sip. 😬`;
+  }
+  tvTurn=1-tvTurn; // pass to the other team
+  document.getElementById('triviaScore').classList.add('hidden');
+  const nb=document.getElementById('triviaNext');nb.textContent='Next question ➜';nb.classList.remove('hidden');
+  renderTriviaBoard();
 }
 
 /* =================== KINGS CUP =================== */
