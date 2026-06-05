@@ -139,6 +139,28 @@
     border-radius:14px;padding:16px;margin:12px 0;color:#39ffd5;box-shadow:inset 0 0 22px #39ff1433}
   .turnnote{font-size:14px;font-weight:800;margin-top:4px}
 
+  /* ---------- RIDE THE BUS ---------- */
+  .rcard{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;
+    width:46px;height:64px;border-radius:8px;background:#fff;color:#13131c;font-weight:900;
+    font-size:18px;line-height:1.04;border:1px solid #0003;box-shadow:0 2px 6px #0007;margin:3px}
+  .rcard.red{color:#e2274c}
+  .rcard.down{background:linear-gradient(135deg,#3a2a6a,#1a1140);color:#7a6ad0;font-size:26px;border:1px solid #ffffff22}
+  .rcard.sm{width:32px;height:46px;font-size:13px;margin:2px}
+  .rcard.hl{outline:3px solid var(--blr);box-shadow:0 0 16px var(--blr)}
+  .rbig{margin:10px 0;transform:scale(1.25)}
+  .rhand{display:flex;flex-wrap:wrap;align-items:center;gap:3px;background:#ffffff08;border-radius:12px;padding:7px 10px;margin:6px 0}
+  .rhand .rhn{font-weight:800;font-size:13px;min-width:78px}
+  .rpyr{display:flex;flex-direction:column;align-items:center;gap:5px;margin:10px 0}
+  .rpyrow{display:flex;align-items:center;gap:3px;justify-content:center}
+  .rpyrow .rsip{font-size:11px;color:var(--muted);width:60px;text-align:right;font-weight:800}
+  .rbtns{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:10px}
+  .mbtn{padding:14px 16px;border-radius:14px;border:0;font-weight:900;font-size:16px;cursor:pointer;
+    background:#ffffff16;color:#fff;flex:1;min-width:100px;transition:transform .1s}
+  .mbtn:active{transform:scale(.96)}
+  .mbtn.red{background:linear-gradient(90deg,#ff2e63,#ff5e7e)}
+  .mbtn.black{background:linear-gradient(90deg,#2a2a3a,#555)}
+  .mbtn.go{background:linear-gradient(90deg,var(--blr),#00e5ff);color:#042018}
+
   @media(min-width:1100px){.screen{padding-top:26px}}
 </style>
 </head>
@@ -267,6 +289,20 @@
   </div>
 </div>
 
+<!-- ============ RIDE THE BUS ============ -->
+<div id="rtb" class="screen">
+  <div class="topbar">
+    <button class="ghostbtn" onclick="go('home')">← Hub</button>
+    <div class="gtitle">🚌 Ride the Bus</div>
+    <button class="ghostbtn" onclick="toggleFullscreen()">⛶</button>
+  </div>
+  <div class="stage">
+    <div class="panel" style="--pc:var(--dare)">
+      <div id="rtbStage"></div>
+    </div>
+  </div>
+</div>
+
 <script>
 /* =================== SHARED SQUAD =================== */
 const COLORS=['#ff2e63','#00e5ff','#ffd23f','#39ff14','#ff8c1a','#9d6bff','#ff32e6','#1affd5'];
@@ -335,6 +371,7 @@ function go(id){
   if(id==='paranoia'){resetDrawer('paranoia');paraIdx=0;startParanoia();}
   if(id==='bomb'){resetDrawer('bombcat');resetBomb();}
   if(id==='trivia')startTrivia();
+  if(id==='rtb')startRTB();
 }
 function openNamma(){saveSquad();location.href='nammanights.html';}
 function toggleFullscreen(){
@@ -352,6 +389,7 @@ const GAMES=[
   {id:'paranoia',e:'😈',n:'Paranoia',d:'Whisper a question. They answer out loud with a name — but the question stays a mystery.',c:'var(--special)',tag:'Secrets',fn:"go('paranoia')"},
   {id:'bomb',e:'💣',n:'Bomb Pass',d:'Ticking bomb + a category. Pass the phone answering — holder when it blows drinks.',c:'var(--crazy)',tag:'Fast',fn:"go('bomb')"},
   {id:'trivia',e:'🧠',n:'Trivia Clash',d:'Two teams, one buzzer. Nail the question and the other team drinks.',c:'var(--blr)',tag:'Teams',fn:"go('trivia')"},
+  {id:'rtb',e:'🚌',n:'Ride the Bus',d:'Four guesses, a sip pyramid, then the player holding the most cards rides the bus.',c:'var(--dare)',tag:'Cards',fn:"go('rtb')"},
 ];
 function renderGrid(){
   const g=document.getElementById('gameGrid');g.innerHTML='';
@@ -895,6 +933,193 @@ function scoreTrivia(correct){
   document.getElementById('triviaScore').classList.add('hidden');
   const nb=document.getElementById('triviaNext');nb.textContent='Next question ➜';nb.classList.remove('hidden');
   renderTriviaBoard();
+}
+
+/* =================== RIDE THE BUS =================== */
+function rtbEsc(s){return (s+'').replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));}
+const RTB_SUITS=[{s:'♠',red:false},{s:'♥',red:true},{s:'♦',red:true},{s:'♣',red:false}];
+const RTB_RANKS=[{r:'A',v:14},{r:'2',v:2},{r:'3',v:3},{r:'4',v:4},{r:'5',v:5},{r:'6',v:6},{r:'7',v:7},{r:'8',v:8},{r:'9',v:9},{r:'10',v:10},{r:'J',v:11},{r:'Q',v:12},{r:'K',v:13}];
+function rtbDeck(){const d=[];RTB_SUITS.forEach(su=>RTB_RANKS.forEach(ra=>d.push({r:ra.r,v:ra.v,s:su.s,red:su.red})));
+  for(let i=d.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[d[i],d[j]]=[d[j],d[i]];}return d;}
+function cardHTML(c,o){o=o||{};
+  if(!c)return `<div class="rcard down ${o.small?'sm':''}">🂠</div>`;
+  return `<div class="rcard ${c.red?'red':''} ${o.small?'sm':''} ${o.hl?'hl':''}"><span>${c.r}</span><span>${c.s}</span></div>`;}
+let rtb=null;
+function startRTB(){
+  rtb={phase:'deal',deck:rtbDeck(),
+    players:squad().map(p=>({name:p.name,color:p.color,hand:[]})),
+    dealP:0,dealStep:0,lastResult:null,
+    pyr:[],pyrFlat:[],pyrIdx:-1,reveal:null,rider:-1,bus:null};
+  renderRTB();
+}
+function buildPyramid(){
+  const counts=[4,3,2,1], sips=[2,4,8,16]; // bottom -> top
+  rtb.pyr=[];rtb.pyrFlat=[];
+  for(let row=0;row<counts.length;row++){
+    const cards=[];
+    for(let k=0;k<counts[row];k++){const e={card:rtb.deck.pop(),sips:sips[row],row,flat:rtb.pyrFlat.length};cards.push(e);rtb.pyrFlat.push(e);}
+    rtb.pyr.push({sips:sips[row],cards});
+  }
+  rtb.pyrIdx=-1;
+}
+/* ----- Round 1: the four questions ----- */
+function rtbGuess(g){
+  const p=rtb.players[rtb.dealP],step=rtb.dealStep,c=rtb.deck.pop();let correct=false;
+  if(step===0)correct=((g==='red')===c.red);
+  else if(step===1)correct=(g==='hi'?c.v>p.hand[0].v:c.v<p.hand[0].v);
+  else if(step===2){const lo=Math.min(p.hand[0].v,p.hand[1].v),hi=Math.max(p.hand[0].v,p.hand[1].v);const ins=c.v>lo&&c.v<hi;correct=(g==='in'?ins:(c.v<lo||c.v>hi));}
+  else correct=(g===c.s);
+  p.hand.push(c);
+  const n=step+1;
+  rtb.lastResult={correct,card:c,msg:correct?`✅ Right! ${rtbEsc(p.name)} hands out ${n} sip${n>1?'s':''}.`:`❌ Wrong — ${rtbEsc(p.name)} drinks ${n} sip${n>1?'s':''}.`};
+  renderRTB();
+}
+function rtbDealNext(){
+  rtb.lastResult=null;rtb.dealStep++;
+  if(rtb.dealStep>3){rtb.dealStep=0;rtb.dealP++;
+    if(rtb.dealP>=rtb.players.length){buildPyramid();rtb.phase='pyramid';}}
+  renderRTB();
+}
+/* ----- Round 2: the pyramid ----- */
+function rtbRevealNext(){
+  rtb.pyrIdx++;
+  if(rtb.pyrIdx>=rtb.pyrFlat.length){rtb.phase='busselect';rtb.reveal=null;renderRTB();return;}
+  const e=rtb.pyrFlat[rtb.pyrIdx],queue=[];
+  rtb.players.forEach((pl,pi)=>pl.hand.forEach(c=>{if(c.r===e.card.r)queue.push(pi);}));
+  rtb.reveal={card:e.card,sips:e.sips,queue,qpos:0,assignTarget:false};
+  renderRTB();
+}
+function rtbMatchHold(){rtb.reveal.qpos++;renderRTB();}
+function rtbMatchPlay(){rtb.reveal.assignTarget=true;renderRTB();}
+function rtbAssign(ti){
+  const rv=rtb.reveal,pi=rv.queue[rv.qpos],pl=rtb.players[pi];
+  const idx=pl.hand.findIndex(c=>c.r===rv.card.r);if(idx>=0)pl.hand.splice(idx,1);
+  rv.assignTarget=false;rv.qpos++;renderRTB();
+}
+/* ----- Round 3: ride the bus ----- */
+function rtbPickRider(pi){rtb.rider=pi;rtb.phase='bus';rtbBusReset(true);renderRTB();}
+function rtbBusReset(full){
+  if(full||!rtb.bus){rtb.bus={deck:rtbDeck(),removed:[],seen:[],step:0,attempts:1,failed:false,lastResult:null,c0:null,c1:null};return;}
+  rtb.bus.removed.push(...rtb.bus.seen);rtb.bus.seen=[];
+  const rem=new Set(rtb.bus.removed.map(c=>c.r+c.s));
+  let d=rtbDeck().filter(c=>!rem.has(c.r+c.s));
+  if(d.length<8){d=rtbDeck();rtb.bus.removed=[];}
+  rtb.bus.deck=d;rtb.bus.step=0;rtb.bus.c0=null;rtb.bus.c1=null;rtb.bus.attempts++;
+}
+function rtbBusGuess(g){
+  const b=rtb.bus,step=b.step,c=b.deck.pop();b.seen.push(c);let correct=false;
+  if(step===0){correct=((g==='red')===c.red);b.c0=c;}
+  else if(step===1){correct=(g==='hi'?c.v>b.c0.v:c.v<b.c0.v);b.c1=c;}
+  else if(step===2){const lo=Math.min(b.c0.v,b.c1.v),hi=Math.max(b.c0.v,b.c1.v);const ins=c.v>lo&&c.v<hi;correct=(g==='in'?ins:(c.v<lo||c.v>hi));}
+  else correct=(g===c.s);
+  if(correct){
+    if(step===3){rtb.phase='done';renderRTB();return;}
+    b.lastResult={correct:true,card:c,msg:`✅ ${['Red / Black','Higher / Lower','Inside / Outside'][step]} — correct!`};
+  }else{
+    const n=step+1;b.failed=true;
+    b.lastResult={card:c,msg:`❌ Wrong! ${rtbEsc(rtb.players[rtb.rider].name)} drinks ${n}. Those cards are burned — reshuffle & start over.`};
+  }
+  renderRTB();
+}
+function rtbBusContinue(){rtb.bus.step++;rtb.bus.lastResult=null;renderRTB();}
+function rtbBusRestart(){rtb.bus.failed=false;rtb.bus.lastResult=null;rtbBusReset(false);renderRTB();}
+/* ----- render ----- */
+function renderRTB(){
+  const el=document.getElementById('rtbStage');if(!el||!rtb)return;
+  let h='';
+  if(rtb.phase==='deal')h=rtbRenderDeal();
+  else if(rtb.phase==='pyramid')h=rtbRenderPyr();
+  else if(rtb.phase==='busselect')h=rtbRenderSelect();
+  else if(rtb.phase==='bus')h=rtbRenderBus();
+  else if(rtb.phase==='done')h=rtbRenderDone();
+  el.innerHTML=h;
+}
+function rtbGuessBtns(prefix){
+  const s=(prefix==='bus'?rtb.bus.step:rtb.dealStep),fn=prefix==='bus'?'rtbBusGuess':'rtbGuess';
+  if(s===0)return `<div class="rbtns"><button class="mbtn red" onclick="${fn}('red')">❤️ Red</button><button class="mbtn black" onclick="${fn}('black')">♠️ Black</button></div>`;
+  if(s===1)return `<div class="rbtns"><button class="mbtn go" onclick="${fn}('hi')">⬆️ Higher</button><button class="mbtn go" onclick="${fn}('lo')">⬇️ Lower</button></div>`;
+  if(s===2)return `<div class="rbtns"><button class="mbtn go" onclick="${fn}('in')">↔️ Inside</button><button class="mbtn go" onclick="${fn}('out')">⏏️ Outside</button></div>`;
+  return `<div class="rbtns">${RTB_SUITS.map(su=>`<button class="mbtn ${su.red?'red':'black'}" onclick="${fn}('${su.s}')">${su.s}</button>`).join('')}</div>`;
+}
+function rtbRenderDeal(){
+  const p=rtb.players[rtb.dealP],n=rtb.players.length;
+  const labels=['Red or Black?','Higher or Lower?','Inside or Outside?','Guess the Suit'];
+  const hints=['Guess the colour of the card.',
+    `Higher or lower than ${p.hand[0]?p.hand[0].r+p.hand[0].s:''}?`,
+    `Inside or outside ${p.hand[0]?p.hand[0].r:''} & ${p.hand[1]?p.hand[1].r:''}?`,
+    'Pick the suit of the final card.'];
+  let h=`<div style="text-align:center"><span class="badge" style="background:var(--dare)">Round 1 · Dealing</span></div>
+  <div class="body" style="font-size:18px"><b style="color:${p.color}">${rtbEsc(p.name)}</b> — question ${rtb.dealStep+1} of 4 <span style="color:var(--muted)">(player ${rtb.dealP+1}/${n})</span></div>
+  <div class="rhand" style="justify-content:center">${p.hand.length?p.hand.map(c=>cardHTML(c)).join(''):'<span style="color:var(--muted)">no cards yet</span>'}</div>`;
+  if(rtb.lastResult){
+    h+=`<div class="turnnote" style="color:${rtb.lastResult.correct?'#39ff14':'#ff5e7e'};font-size:16px">${rtb.lastResult.msg}</div>
+    <button class="bigbtn" onclick="rtbDealNext()">Next ➜</button>`;
+  }else{
+    h+=`<div class="body" style="font-size:21px;font-weight:900">${labels[rtb.dealStep]}</div><div class="meta">${hints[rtb.dealStep]}</div>${rtbGuessBtns('deal')}`;
+  }
+  return h;
+}
+function rtbRenderPyr(){
+  let h=`<div style="text-align:center"><span class="badge" style="background:var(--dare)">Round 2 · The Pyramid</span></div>
+  <div class="meta">Reveal from the base up. Hold a matching rank? Play it to dish out sips — or save it for a richer row.</div><div class="rpyr">`;
+  for(let r=rtb.pyr.length-1;r>=0;r--){const row=rtb.pyr[r];
+    h+=`<div class="rpyrow"><span class="rsip">${row.sips} sips →</span>`;
+    h+=row.cards.map(e=>cardHTML(e.flat<=rtb.pyrIdx?e.card:null,{hl:rtb.reveal&&rtb.reveal.card===e.card})).join('');
+    h+='</div>';}
+  h+='</div><div>'+rtb.players.map(p=>`<div class="rhand"><span class="rhn" style="color:${p.color}">${rtbEsc(p.name)}</span>${p.hand.length?p.hand.map(c=>cardHTML(c,{small:true})).join(''):'<span style="color:var(--muted);font-size:12px">empty</span>'}</div>`).join('')+'</div>';
+  if(!rtb.reveal){
+    h+=`<button class="bigbtn" onclick="rtbRevealNext()">${rtb.pyrIdx<0?'Flip the first card 🃏':'Reveal next card 🃏'}</button>`;
+  }else{
+    const rv=rtb.reveal;
+    h+=`<div class="turnnote">Revealed <b>${rv.card.r}${rv.card.s}</b> — worth <b>${rv.sips} sips</b></div>`;
+    if(rv.qpos>=rv.queue.length){
+      h+=`<div class="meta">${rv.queue.length?'All matches resolved.':'No one holds that rank.'}</div><button class="bigbtn" onclick="rtbRevealNext()">Reveal next card 🃏</button>`;
+    }else{
+      const pl=rtb.players[rv.queue[rv.qpos]];
+      if(rv.assignTarget){
+        h+=`<div class="body" style="font-size:16px"><b style="color:${pl.color}">${rtbEsc(pl.name)}</b> plays a ${rv.card.r} — who drinks ${rv.sips} sips?</div><div class="rbtns">`+
+          rtb.players.map((t,ti)=>ti===rv.queue[rv.qpos]?'':`<button class="mbtn" onclick="rtbAssign(${ti})">${rtbEsc(t.name)}</button>`).join('')+'</div>';
+      }else{
+        h+=`<div class="body" style="font-size:16px"><b style="color:${pl.color}">${rtbEsc(pl.name)}</b> has a ${rv.card.r}!</div>
+        <div class="rbtns"><button class="mbtn go" onclick="rtbMatchPlay()">Play it (${rv.sips} sips)</button><button class="mbtn" onclick="rtbMatchHold()">Hold 🤐</button></div>`;
+      }
+    }
+  }
+  return h;
+}
+function rtbRenderSelect(){
+  const max=Math.max(...rtb.players.map(p=>p.hand.length));
+  const losers=rtb.players.map((p,i)=>({p,i})).filter(x=>x.p.hand.length===max);
+  let h=`<div style="text-align:center"><span class="badge" style="background:var(--crazy);color:#fff">Who rides the bus?</span></div><div>`+
+    rtb.players.map(p=>`<div class="rhand"><span class="rhn" style="color:${p.color}">${rtbEsc(p.name)}</span><span style="color:var(--muted);font-size:12px;margin-right:4px">${p.hand.length} card${p.hand.length!==1?'s':''}</span>${p.hand.map(c=>cardHTML(c,{small:true})).join('')}</div>`).join('')+'</div>';
+  if(losers.length===1){
+    h+=`<div class="turnnote">🚌 <b style="color:${losers[0].p.color}">${rtbEsc(losers[0].p.name)}</b> is stuck with the most cards (${max}) — time to ride!</div>
+    <button class="bigbtn" onclick="rtbPickRider(${losers[0].i})">Start the bus ride 🚌</button>`;
+  }else{
+    h+=`<div class="turnnote">Tie on ${max} cards — pick who rides:</div><div class="rbtns">`+losers.map(x=>`<button class="mbtn go" onclick="rtbPickRider(${x.i})">${rtbEsc(x.p.name)} 🚌</button>`).join('')+'</div>';
+  }
+  return h;
+}
+function rtbRenderBus(){
+  const b=rtb.bus,p=rtb.players[rtb.rider];
+  const labels=['Red or Black?','Higher or Lower?','Inside or Outside?','Guess the Suit'];
+  let h=`<div style="text-align:center"><span class="badge" style="background:var(--crazy);color:#fff">🚌 Riding the Bus · attempt ${b.attempts}</span></div>
+  <div class="body" style="font-size:17px"><b style="color:${p.color}">${rtbEsc(p.name)}</b> must nail all 4 in a row. One miss = drink &amp; restart.</div>
+  <div class="rhand" style="justify-content:center">${b.seen.length?b.seen.map((c,i)=>cardHTML(c,{small:true})).join(''):'<span style="color:var(--muted)">fresh deck</span>'}</div>`;
+  if(b.failed){
+    h+=`<div class="turnnote" style="color:#ff5e7e;font-size:16px">${b.lastResult.msg}</div><button class="bigbtn" onclick="rtbBusRestart()">Restart from Question 1 🔄</button>`;
+  }else if(b.lastResult){
+    h+=`<div class="rbig">${cardHTML(b.lastResult.card)}</div><div class="turnnote" style="color:#39ff14;font-size:16px">${b.lastResult.msg}</div><button class="bigbtn" onclick="rtbBusContinue()">Next question ➜</button>`;
+  }else{
+    h+=`<div class="body" style="font-size:21px;font-weight:900">Q${b.step+1}: ${labels[b.step]}</div>${rtbGuessBtns('bus')}`;
+  }
+  return h;
+}
+function rtbRenderDone(){
+  const p=rtb.players[rtb.rider];
+  return `<div class="emoji">🎉🚌</div><div class="body" style="font-size:22px;font-weight:900;color:${p.color}">${rtbEsc(p.name)} is OFF the bus!</div>
+  <div class="meta">Four in a row — the ride is over. Everyone raises a glass to the survivor. 🍻</div>
+  <div class="rbtns"><button class="bigbtn" onclick="startRTB()">Play again 🔄</button><button class="bigbtn alt" onclick="go('home')">Back to hub ⌂</button></div>`;
 }
 
 /* =================== KINGS CUP =================== */
