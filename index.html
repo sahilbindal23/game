@@ -161,6 +161,23 @@
   .mbtn.black{background:linear-gradient(90deg,#2a2a3a,#555)}
   .mbtn.go{background:linear-gradient(90deg,var(--blr),#00e5ff);color:#042018}
 
+  /* ---------- FOOTY WATCH-PARTY ---------- */
+  .fwteams{display:flex;align-items:center;gap:8px;justify-content:center;margin:12px 0}
+  .fwinp{flex:1;max-width:160px;padding:10px;border-radius:10px;border:1px solid #ffffff22;background:#ffffff0d;color:#fff;font-weight:800;text-align:center;font-size:15px}
+  .fwv{color:var(--muted);font-weight:800}
+  .fwcamps{display:flex;gap:10px;margin:8px 0}
+  .fwcamp{flex:1;border-radius:12px;padding:8px;border:2px solid var(--cc);background:color-mix(in srgb,var(--cc) 12%,transparent);text-align:center}
+  .fwcamp .fwcn{font-weight:900;font-size:13px}
+  .fwcamp .fwcm{font-size:11px;color:var(--muted);margin-top:3px;line-height:1.3}
+  .fwrules{text-align:left;background:#ffffff08;border-radius:12px;padding:10px 12px;margin:8px 0}
+  .fwrules .fwrt{font-weight:900;font-size:13px;margin-bottom:4px;color:var(--blr)}
+  .fwrule{font-size:13px;line-height:1.5}
+  .fwlast{font-size:17px;font-weight:800;line-height:1.4;background:#10241f;border:1px solid var(--blr);border-radius:12px;padding:12px;margin:8px 0}
+  .fwgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px}
+  .fwev{display:flex;flex-direction:column;align-items:center;gap:2px;padding:12px 6px;border-radius:14px;border:0;background:#ffffff14;color:#fff;font-size:22px;font-weight:800;cursor:pointer;transition:transform .1s}
+  .fwev span{font-size:11px;color:var(--muted);font-weight:700}
+  .fwev:active{transform:scale(.95)}
+
   @media(min-width:1100px){.screen{padding-top:26px}}
 </style>
 </head>
@@ -303,6 +320,20 @@
   </div>
 </div>
 
+<!-- ============ FOOTY WATCH-PARTY ============ -->
+<div id="footy" class="screen">
+  <div class="topbar">
+    <button class="ghostbtn" onclick="go('home')">← Hub</button>
+    <div class="gtitle">📺 Footy Watch-Party</div>
+    <button class="ghostbtn" onclick="toggleFullscreen()">⛶</button>
+  </div>
+  <div class="stage">
+    <div class="panel" style="--pc:var(--purple)">
+      <div id="fwStage"></div>
+    </div>
+  </div>
+</div>
+
 <script>
 /* =================== SHARED SQUAD =================== */
 const COLORS=['#ff2e63','#00e5ff','#ffd23f','#39ff14','#ff8c1a','#9d6bff','#ff32e6','#1affd5'];
@@ -372,6 +403,7 @@ function go(id){
   if(id==='bomb'){resetDrawer('bombcat');resetBomb();}
   if(id==='trivia')startTrivia();
   if(id==='rtb')startRTB();
+  if(id==='footy')startFooty();
 }
 function openNamma(){saveSquad();location.href='nammanights.html';}
 function toggleFullscreen(){
@@ -390,6 +422,7 @@ const GAMES=[
   {id:'bomb',e:'💣',n:'Bomb Pass',d:'Ticking bomb + a category. Pass the phone answering — holder when it blows drinks.',c:'var(--crazy)',tag:'Fast',fn:"go('bomb')"},
   {id:'trivia',e:'🧠',n:'Trivia Clash',d:'Two teams, one buzzer. Nail the question and the other team drinks.',c:'var(--blr)',tag:'Teams',fn:"go('trivia')"},
   {id:'rtb',e:'🚌',n:'Ride the Bus',d:'Four guesses, a sip pyramid, then the player holding the most cards rides the bus.',c:'var(--dare)',tag:'Cards',fn:"go('rtb')"},
+  {id:'footy',e:'📺',n:'Footy Watch-Party',d:'Pick the match, split the room into camps, and fire drinking rules on every goal, card & VAR check.',c:'var(--purple)',tag:'Live',fn:"go('footy')"},
 ];
 function renderGrid(){
   const g=document.getElementById('gameGrid');g.innerHTML='';
@@ -746,6 +779,129 @@ const DECKS={
     {c:'🍔 Food',q:"Which country did the dish 'sushi' originate from?",a:"Japan"},
     {c:'🍔 Food',q:"What is the main ingredient in traditional hummus?",a:"Chickpeas"},
     {c:'🍔 Food',q:"Which spice, by weight, is the world's most expensive?",a:"Saffron"},
+  ],
+  /* ===== FOOTY WATCH-PARTY ===== */
+  fwHouse:[
+    "Drink every time the commentator says 'pressure'.",
+    "Drink whenever the camera cuts to the manager.",
+    "Every offside flag: take a sip.",
+    "Mention Messi or Ronaldo unprompted and everyone ELSE drinks 1.",
+    "Every corner — last person to lift their glass drinks.",
+    "No phones during live play. Caught scrolling? Drink 2.",
+    "Ramble about Silk Board traffic instead of watching? Drink 2.",
+    "A player goes down 'injured' then instantly recovers — everyone sips.",
+    "Every throw-in in the final third: drink 1.",
+    "Commentator says a player's full name twice in a row: everyone sips.",
+    "Soft foul given — boo it. Last to boo drinks.",
+    "Drink every time VAR is mentioned before it's even checking.",
+    "Anyone who leaves for a snack during play drinks on return.",
+    "Every yellow card: toast the ref. Last to toast drinks.",
+    "Drink whenever the home crowd does a big 'oooh'.",
+    "Say 'he should've squared it' — if you're wrong, drink.",
+    "Each time the score graphic shows, sip if your team's behind.",
+    "Wrong offside call overturned by VAR: the doubters drink.",
+    "Stoppage-time board shows 5+ minutes: everyone drinks 1.",
+    "Drink every time a pundit says 'at the end of the day'.",
+    "Keeper takes too long with a goal kick — count to 6, drink on 6.",
+    "Anyone who calls a wrong final score by full time finishes their drink.",
+  ],
+  fwGoal:[
+    "GOLAZO! 🎆",
+    "Scorer's camp, take a victory sip together. 🍻",
+    "Slowest celebrator on the winning side drinks too.",
+    "Was it offside? If VAR chalks it off, the drinkers swap. 😈",
+    "Worldie — replay it twice, drink once.",
+    "Winning camp picks one rival to drink double.",
+    "Commentator screams the name — everyone repeats it or sips.",
+    "Anyone not holding a drink right now drinks 2.",
+    "Back of the net — losing camp, bottoms halfway. 😅",
+    "Screamer! Loudest cheer gives the conceding side an extra sip.",
+    "Net bulges — conceding camp does a sad little sip.",
+    "Tap-in or tekkers, a goal's a goal. Toast it.",
+  ],
+  fwYellow:[
+    "🟨 Yellow! Everyone takes 1 sip.",
+    "🟨 Booking — last person to mime a card drinks 2.",
+    "🟨 The person who's moaned most about the ref drinks.",
+    "🟨 Cynical foul — the room's biggest cynic drinks 2.",
+    "🟨 Whoever predicted a clean game sips.",
+    "🟨 Tactical foul: drink 1, mutter 'good professional foul'.",
+    "🟨 Ref reaches for the pocket — slowest reactor drinks.",
+    "🟨 Anyone who's sworn at the TV this half drinks.",
+    "🟨 Late challenge — everyone winces and sips.",
+    "🟨 Soft yellow? Loudest arguer drinks 2.",
+  ],
+  fwRed:[
+    "🟥 RED CARD! Drama — everyone drinks 3.",
+    "🟥 Sent off! The carded side's loudest backer finishes half their drink.",
+    "🟥 Straight red — whoever's wrong when VAR confirms it drinks.",
+    "🟥 Down to ten! Pick someone to match the walk of shame — they drink 3.",
+    "🟥 Two yellows = red. Count to ten, everyone drinks on '10'.",
+    "🟥 Violent conduct — collective gasp, then a big group sip.",
+    "🟥 The optimist who said 'no cards today' downs their drink.",
+    "🟥 Red shown — losing camp braces and drinks 2.",
+  ],
+  fwPen:[
+    "🎯 PENALTY! Everyone drinks 2 while the keeper picks a corner.",
+    "🎯 Call 'scored' or 'saved' — wrong guessers drink 3.",
+    "🎯 Room holds its breath; first to talk drinks.",
+    "🎯 If it's MISSED, the shooter's camp drinks 4.",
+    "🎯 VAR-awarded pen — the doubters drink while it's checked.",
+    "🎯 Last person to say 'he's gonna miss' drinks.",
+    "🎯 Keeper saves? Toast the keeper. Scored? Conceding camp drinks 3.",
+    "🎯 Soft penalty — loudest complainer drinks 2.",
+  ],
+  fwVar:[
+    "📺 VAR check — everyone sips while we wait.",
+    "📺 Drink once per replay angle shown.",
+    "📺 VAR overturns it: the celebrating side now drinks 3. 😈",
+    "📺 Armpit offside? Everyone groans and sips.",
+    "📺 Last person to say 'just give it' drinks 2.",
+    "📺 VAR confirms the goal — conceding camp drinks 2.",
+    "📺 'No clear and obvious error' — drink 1 in protest.",
+    "📺 Ref runs to the monitor — drink until he makes the call.",
+  ],
+  fwCorner:[
+    "🚩 Corner — last to raise a glass drinks.",
+    "🚩 Call 'goal' or 'cleared' — wrong side drinks 1.",
+    "🚩 Taken short? Everyone boos and sips.",
+    "🚩 If it leads to a shot, drink 2.",
+    "🚩 Every 5th corner, the room drinks together.",
+    "🚩 Keeper claims it — slowest to toast the safe hands drinks.",
+    "🚩 Cleared to safety — defending camp sips in relief.",
+    "🚩 The person nearest the snacks drinks.",
+  ],
+  fwMiss:[
+    "😱 HOW DID HE MISS?! The shooter's camp drinks 3.",
+    "😱 Open goal blazed over — everyone covers their face, sips 2.",
+    "😱 Off the woodwork — drink 1, then knock on the table.",
+    "😱 Sitter missed — biggest groan in the room drinks 2.",
+    "😱 Worldie save — toast the keeper, last to toast drinks.",
+    "😱 Skied it into row Z — whoever shouted 'goal!' drinks 2.",
+    "😱 Cleared off the line! Both camps drink 1 from the stress.",
+    "😱 Glorious chance gone — the shooter's biggest fan drinks 3.",
+  ],
+  fwSub:[
+    "🔄 Substitution — drink 1 for fresh legs.",
+    "🔄 Star man hooked? His camp drinks 2 in mourning.",
+    "🔄 Like-for-like sub — boring; everyone sips.",
+    "🔄 Attacker on, defender off — the gambler in the room drinks.",
+    "🔄 Sub gets a standing ovation — toast them or drink.",
+    "🔄 Triple change — drink 1 per substitution.",
+  ],
+  fwCliche:[
+    "🎙️ 'It's a game of two halves' — drink 1.",
+    "🎙️ 'He's put a shift in' — drink 1.",
+    "🎙️ 'Against the run of play' — everyone sips.",
+    "🎙️ 'At the end of the day' — drink 1.",
+    "🎙️ 'They want it more' — drink 2.",
+    "🎙️ 'Schoolboy defending' — defending camp drinks.",
+    "🎙️ 'Parked the bus' — drink 1.",
+    "🎙️ 'Early doors' — sip.",
+    "🎙️ 'He'll be disappointed with that' — drink 1.",
+    "🎙️ 'Top, top player' — drink 2.",
+    "🎙️ 'The magic of the cup' — everyone toasts and sips.",
+    "🎙️ 'On paper…' — drink 1.",
   ],
 };
 /* no-repeat drawers */
@@ -1120,6 +1276,92 @@ function rtbRenderDone(){
   return `<div class="emoji">🎉🚌</div><div class="body" style="font-size:22px;font-weight:900;color:${p.color}">${rtbEsc(p.name)} is OFF the bus!</div>
   <div class="meta">Four in a row — the ride is over. Everyone raises a glass to the survivor. 🍻</div>
   <div class="rbtns"><button class="bigbtn" onclick="startRTB()">Play again 🔄</button><button class="bigbtn alt" onclick="go('home')">Back to hub ⌂</button></div>`;
+}
+
+/* =================== FOOTY WATCH-PARTY =================== */
+let fw=null;
+const FW_KEYS=['fwYellow','fwRed','fwPen','fwVar','fwCorner','fwMiss','fwSub','fwCliche','fwGoal','fwHouse'];
+function startFooty(){
+  fw={phase:'setup',teamA:'',teamB:'',camps:null,rules:[],last:null,goalWho:false,finalMsg:''};
+  FW_KEYS.forEach(k=>resetDrawer(k));
+  renderFooty();
+}
+function fwAssign(){
+  const sq=squad().map(p=>p.name),a=[],b=[];
+  for(let i=sq.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[sq[i],sq[j]]=[sq[j],sq[i]];}
+  sq.forEach((n,i)=>(i%2?b:a).push(n));
+  fw.camps={a,b};renderFooty();
+}
+function fwKickoff(){fw.rules=[];for(let i=0;i<5;i++)fw.rules.push(draw('fwHouse'));fw.phase='live';fw.last=null;fw.goalWho=false;renderFooty();}
+function fwReroll(){fw.rules=[];for(let i=0;i<5;i++)fw.rules.push(draw('fwHouse'));fw.last='🔄 New house rules are in effect!';renderFooty();}
+function fwEvent(key){
+  if(key==='goal'){fw.goalWho=true;fw.last=null;renderFooty();return;}
+  fw.goalWho=false;fw.last=draw(key);renderFooty();
+}
+function fwGoalScored(side){
+  const a=fw.teamA||'Home',b=fw.teamB||'Away';
+  const scorer=side==='a'?a:b,conceder=side==='a'?b:a;
+  const camp=fw.camps?(side==='a'?fw.camps.b:fw.camps.a):null;
+  const who=camp&&camp.length?`Backers of <b>${rtbEsc(conceder)}</b> (${camp.map(rtbEsc).join(', ')})`:`Backers of <b>${rtbEsc(conceder)}</b>`;
+  fw.last=`⚽ GOAL for ${rtbEsc(scorer)}! ${who} drink 3. ${draw('fwGoal')}`;
+  fw.goalWho=false;renderFooty();
+}
+function fwWhistle(){fw.phase='final';renderFooty();}
+function fwResult(side){
+  const a=fw.teamA||'Home',b=fw.teamB||'Away';
+  if(side==='draw'){fw.finalMsg='🤝 A draw! Nobody earned glory — everyone drinks 4.';}
+  else{const winner=side==='a'?a:b,loser=side==='a'?b:a,lc=fw.camps?(side==='a'?fw.camps.b:fw.camps.a):null;
+    const who=lc&&lc.length?`Backers of <b>${rtbEsc(loser)}</b> (${lc.map(rtbEsc).join(', ')})`:`Backers of <b>${rtbEsc(loser)}</b>`;
+    fw.finalMsg=`🏆 ${rtbEsc(winner)} win! ${who} finish your drinks. 🍺`;}
+  fw.phase='done';renderFooty();
+}
+function fwCampsHTML(){
+  const a=fw.teamA||'Home',b=fw.teamB||'Away';
+  return `<div class="fwcamps">
+    <div class="fwcamp" style="--cc:var(--dare)"><div class="fwcn">🔴 ${rtbEsc(a)}</div><div class="fwcm">${fw.camps.a.map(rtbEsc).join(' · ')||'—'}</div></div>
+    <div class="fwcamp" style="--cc:var(--blr)"><div class="fwcn">🔵 ${rtbEsc(b)}</div><div class="fwcm">${fw.camps.b.map(rtbEsc).join(' · ')||'—'}</div></div>
+  </div>`;
+}
+function fwEventGrid(){
+  return `<div class="fwgrid">
+    <button class="fwev" onclick="fwEvent('goal')">⚽<span>Goal</span></button>
+    <button class="fwev" onclick="fwEvent('fwMiss')">😱<span>Big miss</span></button>
+    <button class="fwev" onclick="fwEvent('fwYellow')">🟨<span>Yellow</span></button>
+    <button class="fwev" onclick="fwEvent('fwRed')">🟥<span>Red</span></button>
+    <button class="fwev" onclick="fwEvent('fwPen')">🎯<span>Penalty</span></button>
+    <button class="fwev" onclick="fwEvent('fwVar')">📺<span>VAR</span></button>
+    <button class="fwev" onclick="fwEvent('fwCorner')">🚩<span>Corner</span></button>
+    <button class="fwev" onclick="fwEvent('fwSub')">🔄<span>Sub</span></button>
+    <button class="fwev" onclick="fwEvent('fwCliche')">🎙️<span>Cliché</span></button>
+  </div>`;
+}
+function renderFooty(){
+  const el=document.getElementById('fwStage');if(!el||!fw)return;
+  let h='';
+  if(fw.phase==='setup'){
+    h=`<div style="text-align:center"><span class="badge" style="background:var(--purple)">Match setup</span></div>
+    <div class="meta">Name the two teams on the telly, split the room into camps, then kick off.</div>
+    <div class="fwteams"><input class="fwinp" maxlength="18" placeholder="Home" value="${rtbEsc(fw.teamA)}" oninput="fw.teamA=this.value"><span class="fwv">vs</span><input class="fwinp" maxlength="18" placeholder="Away" value="${rtbEsc(fw.teamB)}" oninput="fw.teamB=this.value"></div>
+    ${fw.camps?fwCampsHTML():'<div class="meta">Tap “Assign backers” to split the squad into two camps.</div>'}
+    <div class="rbtns"><button class="mbtn" onclick="fwAssign()">🎲 Assign backers</button><button class="mbtn go" onclick="fwKickoff()">⚽ Kick off</button></div>`;
+  }else if(fw.phase==='live'){
+    const a=fw.teamA||'Home',b=fw.teamB||'Away';
+    h=`<div style="text-align:center"><span class="badge" style="background:var(--purple)">${rtbEsc(a)} vs ${rtbEsc(b)}</span></div>`;
+    if(fw.camps)h+=fwCampsHTML();
+    h+=`<div class="fwrules"><div class="fwrt">📜 House Rules</div>`+fw.rules.map(r=>`<div class="fwrule">• ${r}</div>`).join('')+`</div>`;
+    if(fw.goalWho){h+=`<div class="fwlast">⚽ Who scored?</div><div class="rbtns"><button class="mbtn red" onclick="fwGoalScored('a')">${rtbEsc(a)}</button><button class="mbtn go" onclick="fwGoalScored('b')">${rtbEsc(b)}</button></div>`;}
+    else if(fw.last){h+=`<div class="fwlast">${fw.last}</div>`;}
+    h+=`<div class="meta">Tap what just happened on screen 👇</div>`+fwEventGrid();
+    h+=`<div class="rbtns"><button class="mbtn" onclick="fwReroll()">🔄 New rules</button><button class="mbtn" onclick="fwWhistle()">📣 Full time</button></div>`;
+  }else if(fw.phase==='final'){
+    const a=fw.teamA||'Home',b=fw.teamB||'Away';
+    h=`<div class="emoji">📣</div><div class="body" style="font-size:20px;font-weight:900">Full time — who won?</div>
+    <div class="rbtns"><button class="mbtn red" onclick="fwResult('a')">${rtbEsc(a)}</button><button class="mbtn go" onclick="fwResult('b')">${rtbEsc(b)}</button><button class="mbtn" onclick="fwResult('draw')">Draw</button></div>`;
+  }else if(fw.phase==='done'){
+    h=`<div class="emoji">🍺🏟️</div><div class="body" style="font-size:18px;font-weight:800;line-height:1.4">${fw.finalMsg}</div>
+    <div class="rbtns"><button class="bigbtn" onclick="startFooty()">New match ⚽</button><button class="bigbtn alt" onclick="go('home')">Back to hub ⌂</button></div>`;
+  }
+  el.innerHTML=h;
 }
 
 /* =================== KINGS CUP =================== */
