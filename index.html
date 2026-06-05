@@ -1136,7 +1136,7 @@ function rtbGuess(g){
   else correct=(g===c.s);
   p.hand.push(c);
   const n=step+1;
-  rtb.lastResult={correct,card:c,msg:correct?`✅ Right! ${rtbEsc(p.name)} hands out ${n} sip${n>1?'s':''}.`:`❌ Wrong — ${rtbEsc(p.name)} drinks ${n} sip${n>1?'s':''}.`};
+  rtb.lastResult={correct,card:c,msg:correct?`✅ Correct! Safe — no sips.`:`❌ Wrong — ${rtbEsc(p.name)} drinks ${n} sip${n>1?'s':''}.`};
   renderRTB();
 }
 function rtbDealNext(){
