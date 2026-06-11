@@ -265,7 +265,7 @@
       <button data-i="unhinged" onclick="setIntensity('unhinged')">💀 Unhinged</button>
     </div>
     <button class="startbtn" onclick="startGame()">Start the Night 🍻</button>
-    <div class="hint">Add or remove players anytime (3–6). One shared screen — pass it on every turn.<br>Everyone must reach FINISH for the game to end. Drink responsibly.</div>
+    <div class="hint">Add or remove players anytime (2–6). One shared screen — pass it on every turn.<br>Everyone must reach FINISH for the game to end. Drink responsibly.</div>
   </div>
 </div>
 
@@ -1218,10 +1218,10 @@ function renderSetup(){
     box.appendChild(row);
   }
   document.getElementById('countLabel').textContent=count;
-  document.getElementById('minus').disabled=(count<=3);
+  document.getElementById('minus').disabled=(count<=2);
   document.getElementById('plus').disabled=(count>=6);
 }
-function changeCount(d){count=Math.max(3,Math.min(6,count+d));renderSetup();}
+function changeCount(d){count=Math.max(2,Math.min(6,count+d));renderSetup();}
 function toggleFullscreen(){
   const el=document.documentElement;
   if(!document.fullscreenElement&&!document.webkitFullscreenElement){
@@ -1553,7 +1553,7 @@ function loadSquadFromHub(){
   try{
     const s=JSON.parse(localStorage.getItem('nnSquad')||'null');
     if(s&&Array.isArray(s.names)&&s.names.length){
-      count=Math.max(3,Math.min(6,s.names.length));
+      count=Math.max(2,Math.min(6,s.names.length));
       const used=[];
       if(Array.isArray(s.chars))for(let i=0;i<count;i++){
         let c=(typeof s.chars[i]==='number')?s.chars[i]%CHARACTERS.length:i;
