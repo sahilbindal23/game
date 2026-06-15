@@ -139,6 +139,18 @@
     border-radius:14px;padding:16px;margin:12px 0;color:#39ffd5;box-shadow:inset 0 0 22px #39ff1433}
   .turnnote{font-size:14px;font-weight:800;margin-top:4px}
 
+  /* ---------- SIP JEOPARDY ---------- */
+  .jboard{display:grid;gap:6px;margin:12px 0}
+  .jcat{font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.4px;text-align:center;
+    padding:8px 3px;border-radius:10px;background:linear-gradient(180deg,#1b1c3a,#10101f);
+    border:1px solid #2a2b55;color:var(--blr);min-height:50px;display:flex;align-items:center;justify-content:center;line-height:1.15}
+  .jcell{font-size:22px;font-weight:900;text-align:center;padding:15px 3px;border-radius:10px;
+    background:#0a0a16;border:1px solid #2a2b55;color:var(--start);transition:transform .1s}
+  .jcell:active{transform:scale(.95)}
+  .jcell.used{opacity:.22;color:var(--muted);border-style:dashed;pointer-events:none}
+  .jdeal{display:flex;flex-direction:column;gap:12px;margin:14px 0;font-size:15px;line-height:1.5;
+    background:#0a0a16;border:1px solid #2a2b55;border-radius:14px;padding:16px;text-align:left}
+
   /* ---------- RIDE THE BUS ---------- */
   .rcard{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;
     width:46px;height:64px;border-radius:8px;background:#fff;color:#13131c;font-weight:900;
@@ -338,6 +350,47 @@
   </div>
 </div>
 
+<!-- ============ SIP JEOPARDY ============ -->
+<div id="jeopardy" class="screen">
+  <div class="topbar">
+    <button class="ghostbtn" onclick="go('home')">← Hub</button>
+    <div class="gtitle">🎯 Sip Jeopardy</div>
+    <button class="ghostbtn" onclick="toggleFullscreen()">⛶</button>
+  </div>
+  <div class="stage">
+    <div class="panel" style="--pc:var(--blr)">
+      <div class="tboard" id="jpScore"></div>
+      <div class="turnnote" id="jpTurn">Loading teams…</div>
+
+      <!-- BOARD VIEW -->
+      <div id="jpBoardView">
+        <div class="jboard" id="jpBoard"></div>
+        <div class="meta" id="jpBoardHint">Picking team: choose a category &amp; sip value.</div>
+      </div>
+
+      <!-- QUESTION VIEW -->
+      <div id="jpQView" class="hidden">
+        <div style="text-align:center;margin-top:6px">
+          <span class="badge" id="jpCat" style="background:var(--blr)">Category</span>
+          <span class="badge" id="jpVal" style="background:var(--start);color:#04210f">2 sips</span>
+        </div>
+        <div class="body" id="jpQ" style="font-size:21px">Question…</div>
+        <div class="triviaA hidden" id="jpA"></div>
+        <div class="meta" id="jpQHint">Confer, lock an answer out loud, then reveal.</div>
+        <button class="bigbtn alt" id="jpReveal" onclick="revealJp()">👁 Reveal answer</button>
+        <div id="jpScoreBtns" class="hidden" style="display:flex;gap:10px">
+          <button class="bigbtn" style="flex:1;background:linear-gradient(90deg,#39ff14,#00e5ff);color:#04210f" onclick="scoreJp(true)">✓ Correct</button>
+          <button class="bigbtn" style="flex:1;background:linear-gradient(90deg,#ff2e63,#ff8c1a);color:#fff" onclick="scoreJp(false)">✗ Missed</button>
+        </div>
+      </div>
+
+      <!-- RESULTS VIEW -->
+      <div id="jpResults" class="hidden"></div>
+    </div>
+    <button class="bigbtn hidden" id="jpRestart" onclick="startJeopardy()">Play again 🔄</button>
+  </div>
+</div>
+
 <script>
 /* =================== SHARED SQUAD =================== */
 const COLORS=['#ff2e63','#00e5ff','#ffd23f','#39ff14','#ff8c1a','#9d6bff','#ff32e6','#1affd5'];
@@ -406,6 +459,7 @@ function go(id){
   if(id==='paranoia'){resetDrawer('paranoia');paraIdx=0;startParanoia();}
   if(id==='bomb'){resetDrawer('bombcat');resetBomb();}
   if(id==='trivia')startTrivia();
+  if(id==='jeopardy')startJeopardy();
   if(id==='rtb')startRTB();
   if(id==='footy')startFooty();
 }
@@ -425,6 +479,7 @@ const GAMES=[
   {id:'paranoia',e:'😈',n:'Paranoia',d:'Whisper a question. They answer out loud with a name — but the question stays a mystery.',c:'var(--special)',tag:'Secrets',fn:"go('paranoia')"},
   {id:'bomb',e:'💣',n:'Bomb Pass',d:'Ticking bomb + a category. Pass the phone answering — holder when it blows drinks.',c:'var(--crazy)',tag:'Fast',fn:"go('bomb')"},
   {id:'trivia',e:'🧠',n:'Trivia Clash',d:'Two teams, one buzzer. Nail the question and the other team drinks.',c:'var(--blr)',tag:'Teams',fn:"go('trivia')"},
+  {id:'jeopardy',e:'🎯',n:'Sip Jeopardy',d:'Pick a category & a sip value (2–8). Answer right to bank the sips, then deal them out to the other team.',c:'var(--start)',tag:'Teams',fn:"go('jeopardy')"},
   {id:'rtb',e:'🚌',n:'Ride the Bus',d:'Four guesses, a sip pyramid, then the player holding the most cards rides the bus.',c:'var(--dare)',tag:'Cards',fn:"go('rtb')"},
   {id:'footy',e:'📺',n:'Footy Watch-Party',d:'Pick the match, split the room into camps, and fire drinking rules on every goal, card & VAR check.',c:'var(--purple)',tag:'Live',fn:"go('footy')"},
 ];
@@ -1093,6 +1148,163 @@ function scoreTrivia(correct){
   document.getElementById('triviaScore').classList.add('hidden');
   const nb=document.getElementById('triviaNext');nb.textContent='Next question ➜';nb.classList.remove('hidden');
   renderTriviaBoard();
+}
+
+/* =================== SIP JEOPARDY =================== */
+/* each category has 2 questions per sip-value (2/4/6/8) → board reshuffles every game */
+const JEOPARDY=[
+  {c:'⚽ Football', q:{
+    2:[{q:"How many players from one team are on the pitch at kickoff?",a:"11"},
+       {q:"Which country won the 2022 FIFA World Cup?",a:"Argentina"}],
+    4:[{q:"How many points does a team get for a win in league football?",a:"3"},
+       {q:"Which club has Lionel Messi spent the most of his career at?",a:"FC Barcelona"}],
+    6:[{q:"Who won the 2023-24 Premier League title?",a:"Manchester City"},
+       {q:"Which player has won the most Ballon d'Or awards?",a:"Lionel Messi (8)"}],
+    8:[{q:"Which club has won the most European Cup / Champions League titles?",a:"Real Madrid"},
+       {q:"Who scored the 'Hand of God' goal at the 1986 World Cup?",a:"Diego Maradona"}],
+  }},
+  {c:'🛺 Bangalore', q:{
+    2:[{q:"Bengaluru is the capital of which Indian state?",a:"Karnataka"},
+       {q:"What hot drink is Bangalore mornings famous for?",a:"Filter coffee"}],
+    4:[{q:"Which area is Bengaluru's pub & hipster hub off 100ft Road?",a:"Indiranagar"},
+       {q:"Cubbon Park and Lalbagh are famous Bangalore examples of what?",a:"Parks / gardens"}],
+    6:[{q:"Who is credited with founding Bangalore in 1537?",a:"Kempe Gowda"},
+       {q:"What does the institute 'IISc' stand for?",a:"Indian Institute of Science"}],
+    8:[{q:"Tipu Sultan's summer palace in Bangalore is built mainly from which material?",a:"Teak wood"},
+       {q:"'Bengaluru' (Bendakaalooru) roughly translates to the town of what?",a:"Boiled beans"}],
+  }},
+  {c:'🎬 Movies & TV', q:{
+    2:[{q:"Which streaming service produced 'Stranger Things'?",a:"Netflix"},
+       {q:"'KGF' is set in a goldfield in which Indian state?",a:"Karnataka"}],
+    4:[{q:"Who plays Iron Man / Tony Stark in the MCU?",a:"Robert Downey Jr."},
+       {q:"'House of the Dragon' is a prequel to which HBO show?",a:"Game of Thrones"}],
+    6:[{q:"Which 2023 film about a physicist won Best Picture at the Oscars?",a:"Oppenheimer"},
+       {q:"What is the chemistry-teacher alias in 'Breaking Bad'?",a:"Heisenberg"}],
+    8:[{q:"'Naatu Naatu' won the 2023 Best Original Song Oscar for which Indian film?",a:"RRR"},
+       {q:"Who directed 'Inception' and 'Interstellar'?",a:"Christopher Nolan"}],
+  }},
+  {c:'🎵 Music', q:{
+    2:[{q:"Which artist sang 'Blinding Lights'?",a:"The Weeknd"},
+       {q:"How many members were in One Direction at their peak?",a:"5"}],
+    4:[{q:"Which Punjabi artist released the album 'Moosetape'?",a:"Sidhu Moose Wala"},
+       {q:"'Kesariya' is a hit song from which 2022 Bollywood film?",a:"Brahmāstra"}],
+    6:[{q:"Which rapper released 'Scorpion', featuring 'In My Feelings'?",a:"Drake"},
+       {q:"Who composed the Oscar-winning music for 'Slumdog Millionaire'?",a:"A.R. Rahman"}],
+    8:[{q:"Which band recorded 'Bohemian Rhapsody'?",a:"Queen"},
+       {q:"DIVINE & Naezy's Mumbai rap scene inspired which 2019 Bollywood film?",a:"Gully Boy"}],
+  }},
+  {c:'🍻 Booze & Bar', q:{
+    2:[{q:"Which herb is essential in a classic mojito?",a:"Mint"},
+       {q:"Tonic water + which spirit makes a G&T?",a:"Gin"}],
+    4:[{q:"Tequila is made from which plant?",a:"Agave"},
+       {q:"What does 'IPA' stand for in beer?",a:"India Pale Ale"}],
+    6:[{q:"Which country is the origin of the rice drink 'sake'?",a:"Japan"},
+       {q:"A Negroni is gin, Campari and which fortified wine?",a:"Sweet vermouth"}],
+    8:[{q:"Whisky aged in a barrel gets its colour mostly from what?",a:"The (charred oak) cask / wood"},
+       {q:"Ordering a spirit 'neat' means served how?",a:"Straight — no ice, no mixer"}],
+  }},
+];
+let jpTeams=[[],[]],jpBank=[0,0],jpTurn=0,jpCur=null,jpRemain=0,jpBoardData=[];
+const JP_META=[{n:'Team A',e:'🔴',c:'#ff2e63'},{n:'Team B',e:'🔵',c:'#00e5ff'}];
+const JP_VALUES=[2,4,6,8];
+function jpPick(arr){return arr[Math.floor(Math.random()*arr.length)];}
+function buildJpTeams(){const s=squad();jpTeams=[[],[]];s.forEach((p,i)=>jpTeams[i%2].push(p.name));}
+function buildJpBoard(){
+  jpBoardData=JEOPARDY.map(cat=>({
+    c:cat.c,
+    cells:JP_VALUES.map(v=>{const o=jpPick(cat.q[v]);return {v,q:o.q,a:o.a,used:false};})
+  }));
+  jpRemain=jpBoardData.length*JP_VALUES.length;
+}
+function renderJpScore(){
+  const b=document.getElementById('jpScore');b.innerHTML='';
+  JP_META.forEach((t,i)=>{
+    const d=document.createElement('div');
+    d.className='tcard'+(i===jpTurn?' turn':'');d.style.setProperty('--tc',t.c);
+    d.innerHTML=`<div class="tn" style="color:${t.c}">${t.e} ${t.n}</div>
+      <div class="ts">${jpBank[i]}</div>
+      <div class="tm">${jpTeams[i].join(' · ')||'—'} · banked sips</div>`;
+    b.appendChild(d);
+  });
+  const t=JP_META[jpTurn];
+  document.getElementById('jpTurn').innerHTML=`<span style="color:${t.c}">${t.e} ${t.n}</span>'s pick`;
+}
+function renderJpBoard(){
+  const b=document.getElementById('jpBoard');
+  b.style.gridTemplateColumns=`repeat(${jpBoardData.length},1fr)`;b.innerHTML='';
+  jpBoardData.forEach(cat=>{const h=document.createElement('div');h.className='jcat';h.textContent=cat.c;b.appendChild(h);});
+  for(let r=0;r<JP_VALUES.length;r++){
+    jpBoardData.forEach((cat,ci)=>{
+      const cell=cat.cells[r];
+      const el=document.createElement('button');
+      el.className='jcell'+(cell.used?' used':'');
+      el.textContent=cell.used?'✓':cell.v;
+      if(!cell.used)el.setAttribute('onclick',`openJp(${ci},${r})`);
+      b.appendChild(el);
+    });
+  }
+}
+function startJeopardy(){
+  buildJpTeams();buildJpBoard();
+  jpBank=[0,0];jpTurn=0;jpCur=null;
+  document.getElementById('jpResults').classList.add('hidden');
+  document.getElementById('jpResults').innerHTML='';
+  document.getElementById('jpQView').classList.add('hidden');
+  document.getElementById('jpBoardView').classList.remove('hidden');
+  document.getElementById('jpRestart').classList.add('hidden');
+  document.getElementById('jpBoardHint').textContent='Picking team: choose a category & sip value.';
+  renderJpScore();renderJpBoard();
+}
+function openJp(ci,r){
+  const cell=jpBoardData[ci].cells[r];if(cell.used)return;
+  jpCur={ci,r,cell};
+  document.getElementById('jpBoardView').classList.add('hidden');
+  document.getElementById('jpQView').classList.remove('hidden');
+  document.getElementById('jpCat').textContent=jpBoardData[ci].c;
+  document.getElementById('jpVal').textContent=cell.v+' sips';
+  document.getElementById('jpQ').textContent=cell.q;
+  const a=document.getElementById('jpA');a.classList.add('hidden');a.textContent='';
+  document.getElementById('jpQHint').textContent='Confer, lock an answer out loud, then reveal.';
+  document.getElementById('jpReveal').classList.remove('hidden');
+  document.getElementById('jpScoreBtns').classList.add('hidden');
+}
+function revealJp(){
+  if(!jpCur)return;
+  const a=document.getElementById('jpA');a.textContent='✅ '+jpCur.cell.a;a.classList.remove('hidden');
+  document.getElementById('jpReveal').classList.add('hidden');
+  document.getElementById('jpScoreBtns').classList.remove('hidden');
+  const t=JP_META[jpTurn];
+  document.getElementById('jpQHint').innerHTML=`Host: did <b style="color:${t.c}">${t.n}</b> get it right?`;
+}
+function scoreJp(correct){
+  const cur=JP_META[jpTurn],val=jpCur.cell.v;
+  jpCur.cell.used=true;jpRemain--;
+  if(correct)jpBank[jpTurn]+=val;
+  jpTurn=1-jpTurn;
+  document.getElementById('jpQView').classList.add('hidden');
+  if(jpRemain<=0){endJeopardy();return;}
+  document.getElementById('jpBoardView').classList.remove('hidden');
+  document.getElementById('jpBoardHint').innerHTML=correct
+    ?`✅ <b style="color:${cur.c}">${cur.n}</b> banked ${val} sips!`
+    :`❌ <b style="color:${cur.c}">${cur.n}</b> missed — no sips banked.`;
+  renderJpScore();renderJpBoard();
+}
+function endJeopardy(){
+  renderJpScore();
+  const A=JP_META[0],B=JP_META[1];
+  let verdict;
+  if(jpBank[0]===jpBank[1])verdict='Dead heat — everyone matches sips. 🤝';
+  else{const w=jpBank[0]>jpBank[1]?0:1;verdict=`${JP_META[w].e} ${JP_META[w].n} dealt the most damage tonight. 👑`;}
+  const res=document.getElementById('jpResults');
+  res.classList.remove('hidden');
+  res.innerHTML=`<div class="emoji" style="font-size:46px">🏆</div>
+    <div class="body" style="font-size:19px">Board cleared — deal out the sips!</div>
+    <div class="jdeal">
+      <div><b style="color:${A.c}">${A.e} ${A.n}</b> banked <b>${jpBank[0]}</b> → hand <b>${jpBank[0]} sips</b> to <b style="color:${B.c}">${B.n}</b> 🍻</div>
+      <div><b style="color:${B.c}">${B.e} ${B.n}</b> banked <b>${jpBank[1]}</b> → hand <b>${jpBank[1]} sips</b> to <b style="color:${A.c}">${A.n}</b> 🍻</div>
+    </div>
+    <div class="meta">${verdict}</div>`;
+  document.getElementById('jpRestart').classList.remove('hidden');
 }
 
 /* =================== RIDE THE BUS =================== */
