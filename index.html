@@ -359,35 +359,54 @@
   </div>
   <div class="stage">
     <div class="panel" style="--pc:var(--blr)">
-      <div class="tboard" id="jpScore"></div>
-      <div class="turnnote" id="jpTurn">Loading teams…</div>
 
-      <!-- BOARD VIEW -->
-      <div id="jpBoardView">
-        <div class="jboard" id="jpBoard"></div>
-        <div class="meta" id="jpBoardHint">Picking team: choose a category &amp; sip value.</div>
-      </div>
-
-      <!-- QUESTION VIEW -->
-      <div id="jpQView" class="hidden">
-        <div style="text-align:center;margin-top:6px">
-          <span class="badge" id="jpCat" style="background:var(--blr)">Category</span>
-          <span class="badge" id="jpVal" style="background:var(--start);color:#04210f">2 sips</span>
-        </div>
-        <div class="body" id="jpQ" style="font-size:21px">Question…</div>
-        <div class="triviaA hidden" id="jpA"></div>
-        <div class="meta" id="jpQHint">Confer, lock an answer out loud, then reveal.</div>
-        <button class="bigbtn alt" id="jpReveal" onclick="revealJp()">👁 Reveal answer</button>
-        <div id="jpScoreBtns" class="hidden" style="display:flex;gap:10px">
-          <button class="bigbtn" style="flex:1;background:linear-gradient(90deg,#39ff14,#00e5ff);color:#04210f" onclick="scoreJp(true)">✓ Correct</button>
-          <button class="bigbtn" style="flex:1;background:linear-gradient(90deg,#ff2e63,#ff8c1a);color:#fff" onclick="scoreJp(false)">✗ Missed</button>
+      <!-- SETUP: MODE SELECT -->
+      <div id="jpSetupView">
+        <div class="body" style="font-size:16px;margin:6px 0 14px">Choose your category set:</div>
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <button class="bigbtn" onclick="startJeopardy('bois')" style="text-align:center;line-height:1.4;padding:16px 10px">
+            🤙 The Bois<br>
+            <span style="font-size:11px;font-weight:600;opacity:.8">Football · Video Games · Science · Movies · General Knowledge</span>
+          </button>
+          <button class="bigbtn alt" onclick="startJeopardy('general')" style="text-align:center;line-height:1.4;padding:16px 10px">
+            🌍 General<br>
+            <span style="font-size:11px;font-weight:600;opacity:.8">Science · Entertainment · General Knowledge · Sports · Geography</span>
+          </button>
         </div>
       </div>
 
-      <!-- RESULTS VIEW -->
-      <div id="jpResults" class="hidden"></div>
+      <div id="jpGameView" class="hidden">
+        <div class="tboard" id="jpScore"></div>
+        <div class="turnnote" id="jpTurn">Loading teams…</div>
+
+        <!-- BOARD VIEW -->
+        <div id="jpBoardView">
+          <div class="jboard" id="jpBoard"></div>
+          <div class="meta" id="jpBoardHint">Picking team: choose a category &amp; sip value.</div>
+        </div>
+
+        <!-- QUESTION VIEW -->
+        <div id="jpQView" class="hidden">
+          <div style="text-align:center;margin-top:6px">
+            <span class="badge" id="jpCat" style="background:var(--blr)">Category</span>
+            <span class="badge" id="jpVal" style="background:var(--start);color:#04210f">2 sips</span>
+          </div>
+          <div class="body" id="jpQ" style="font-size:21px">Question…</div>
+          <div class="triviaA hidden" id="jpA"></div>
+          <div class="meta" id="jpQHint">Confer, lock an answer out loud, then reveal.</div>
+          <button class="bigbtn alt" id="jpReveal" onclick="revealJp()">👁 Reveal answer</button>
+          <div id="jpScoreBtns" class="hidden" style="display:flex;gap:10px">
+            <button class="bigbtn" style="flex:1;background:linear-gradient(90deg,#39ff14,#00e5ff);color:#04210f" onclick="scoreJp(true)">✓ Correct</button>
+            <button class="bigbtn" style="flex:1;background:linear-gradient(90deg,#ff2e63,#ff8c1a);color:#fff" onclick="scoreJp(false)">✗ Missed</button>
+          </div>
+        </div>
+
+        <!-- RESULTS VIEW -->
+        <div id="jpResults" class="hidden"></div>
+      </div>
+
     </div>
-    <button class="bigbtn hidden" id="jpRestart" onclick="startJeopardy()">Play again 🔄</button>
+    <button class="bigbtn hidden" id="jpRestart" onclick="showJpSetup()">Change mode / Play again 🔄</button>
   </div>
 </div>
 
@@ -459,7 +478,7 @@ function go(id){
   if(id==='paranoia'){resetDrawer('paranoia');paraIdx=0;startParanoia();}
   if(id==='bomb'){resetDrawer('bombcat');resetBomb();}
   if(id==='trivia')startTrivia();
-  if(id==='jeopardy')startJeopardy();
+  if(id==='jeopardy')showJpSetup();
   if(id==='rtb')startRTB();
   if(id==='footy')startFooty();
 }
@@ -1151,57 +1170,90 @@ function scoreTrivia(correct){
 }
 
 /* =================== SIP JEOPARDY =================== */
-/* each category has 2 questions per sip-value (2/4/6/8) → board reshuffles every game */
-const JEOPARDY=[
-  {c:'⚽ Football', q:{
+/* 8 category pool — each tagged with the mode(s) it appears in.
+   'bois'    → Football · Video Games · Science · Movies · General Knowledge
+   'general' → Science · Entertainment · General Knowledge · Sports · Geography
+   Science & GK appear in both modes.                                        */
+const JEOPARDY_POOL=[
+  {c:'⚽ Football', modes:['bois'], q:{
     2:[{q:"How many players from one team are on the pitch at kickoff?",a:"11"},
        {q:"Which country won the 2022 FIFA World Cup?",a:"Argentina"}],
-    4:[{q:"How many points does a team get for a win in league football?",a:"3"},
+    4:[{q:"How many points does a team get for a league win?",a:"3"},
        {q:"Which club has Lionel Messi spent the most of his career at?",a:"FC Barcelona"}],
     6:[{q:"Who won the 2023-24 Premier League title?",a:"Manchester City"},
        {q:"Which player has won the most Ballon d'Or awards?",a:"Lionel Messi (8)"}],
-    8:[{q:"Which club has won the most European Cup / Champions League titles?",a:"Real Madrid"},
+    8:[{q:"Which club has won the most Champions League / European Cup titles?",a:"Real Madrid"},
        {q:"Who scored the 'Hand of God' goal at the 1986 World Cup?",a:"Diego Maradona"}],
   }},
-  {c:'🛺 Bangalore', q:{
-    2:[{q:"Bengaluru is the capital of which Indian state?",a:"Karnataka"},
-       {q:"What hot drink is Bangalore mornings famous for?",a:"Filter coffee"}],
-    4:[{q:"Which area is Bengaluru's pub & hipster hub off 100ft Road?",a:"Indiranagar"},
-       {q:"Cubbon Park and Lalbagh are famous Bangalore examples of what?",a:"Parks / gardens"}],
-    6:[{q:"Who is credited with founding Bangalore in 1537?",a:"Kempe Gowda"},
-       {q:"What does the institute 'IISc' stand for?",a:"Indian Institute of Science"}],
-    8:[{q:"Tipu Sultan's summer palace in Bangalore is built mainly from which material?",a:"Teak wood"},
-       {q:"'Bengaluru' (Bendakaalooru) roughly translates to the town of what?",a:"Boiled beans"}],
+  {c:'🎮 Video Games', modes:['bois'], q:{
+    2:[{q:"Which game has you mining blocks and building structures in a world of cubes?",a:"Minecraft"},
+       {q:"In Fortnite, what must you be to win a match?",a:"The last player / team standing"}],
+    4:[{q:"In GTA V, what is the name of the fictional city the story is set in?",a:"Los Santos"},
+       {q:"What does 'RPG' stand for in gaming?",a:"Role-Playing Game"}],
+    6:[{q:"Which 2077-set open-world game is based in the fictional 'Night City'?",a:"Cyberpunk 2077"},
+       {q:"What is the full official name of the game known in India as BGMI?",a:"Battlegrounds Mobile India"}],
+    8:[{q:"Which fantasy author co-wrote the lore for the game 'Elden Ring'?",a:"George R.R. Martin"},
+       {q:"In which year was the original Call of Duty: Modern Warfare released?",a:"2007"}],
   }},
-  {c:'🎬 Movies & TV', q:{
-    2:[{q:"Which streaming service produced 'Stranger Things'?",a:"Netflix"},
+  {c:'🔬 Science', modes:['bois','general'], q:{
+    2:[{q:"What is the powerhouse of the cell?",a:"Mitochondria"},
+       {q:"How many planets are in our solar system?",a:"8"}],
+    4:[{q:"What is the chemical symbol for gold?",a:"Au"},
+       {q:"What does DNA stand for?",a:"Deoxyribonucleic acid"}],
+    6:[{q:"Approximately how fast does light travel (in km per second)?",a:"~300,000 km/s"},
+       {q:"How many bones are in the adult human body?",a:"206"}],
+    8:[{q:"What element has the highest naturally occurring atomic number?",a:"Uranium (92)"},
+       {q:"What is the boundary around a black hole beyond which nothing can escape?",a:"The event horizon"}],
+  }},
+  {c:'🎬 Movies', modes:['bois'], q:{
+    2:[{q:"Which superhero says 'I am Iron Man'?",a:"Tony Stark / Iron Man"},
+       {q:"In which fictional city does Batman fight crime?",a:"Gotham City"}],
+    4:[{q:"Who plays Dom Toretto in the Fast & Furious franchise?",a:"Vin Diesel"},
+       {q:"Which 2019 film tells the Joker's origin story, starring Joaquin Phoenix?",a:"Joker"}],
+    6:[{q:"Who directed Inception, The Dark Knight, and Interstellar?",a:"Christopher Nolan"},
+       {q:"Which 2009 sci-fi epic features the Na'vi people on the moon Pandora?",a:"Avatar"}],
+    8:[{q:"When Oppenheimer quotes 'Now I am become Death', which text is he referencing?",a:"The Bhagavad Gita"},
+       {q:"Quentin Tarantino directed which 2009 WWII alternate-history film?",a:"Inglourious Basterds"}],
+  }},
+  {c:'🧠 General Knowledge', modes:['bois','general'], q:{
+    2:[{q:"How many sides does a hexagon have?",a:"6"},
+       {q:"Which planet is known as the Red Planet?",a:"Mars"}],
+    4:[{q:"What is the capital of Australia?",a:"Canberra"},
+       {q:"How many zeroes are in one billion?",a:"9"}],
+    6:[{q:"Who is credited with inventing the telephone?",a:"Alexander Graham Bell"},
+       {q:"Which element makes up roughly 78% of Earth's atmosphere?",a:"Nitrogen"}],
+    8:[{q:"What is the currency of Japan?",a:"Yen"},
+       {q:"In what year did World War II end?",a:"1945"}],
+  }},
+  {c:'🎭 Entertainment', modes:['general'], q:{
+    2:[{q:"Which streaming show is set in the fictional town of Hawkins, Indiana?",a:"Stranger Things"},
        {q:"'KGF' is set in a goldfield in which Indian state?",a:"Karnataka"}],
-    4:[{q:"Who plays Iron Man / Tony Stark in the MCU?",a:"Robert Downey Jr."},
-       {q:"'House of the Dragon' is a prequel to which HBO show?",a:"Game of Thrones"}],
-    6:[{q:"Which 2023 film about a physicist won Best Picture at the Oscars?",a:"Oppenheimer"},
+    4:[{q:"Which 2022 Indian film features the Oscar-winning song 'Naatu Naatu'?",a:"RRR"},
        {q:"What is the chemistry-teacher alias in 'Breaking Bad'?",a:"Heisenberg"}],
-    8:[{q:"'Naatu Naatu' won the 2023 Best Original Song Oscar for which Indian film?",a:"RRR"},
-       {q:"Who directed 'Inception' and 'Interstellar'?",a:"Christopher Nolan"}],
+    6:[{q:"Freddie Mercury was the lead vocalist of which band?",a:"Queen"},
+       {q:"Who directed Inception, The Dark Knight, and Interstellar?",a:"Christopher Nolan"}],
+    8:[{q:"Which artist collaborated with Jay-Z on the 2011 album 'Watch the Throne'?",a:"Kanye West"},
+       {q:"The Mandalorian is set in which fictional universe?",a:"Star Wars"}],
   }},
-  {c:'🎵 Music', q:{
-    2:[{q:"Which artist sang 'Blinding Lights'?",a:"The Weeknd"},
-       {q:"How many members were in One Direction at their peak?",a:"5"}],
-    4:[{q:"Which Punjabi artist released the album 'Moosetape'?",a:"Sidhu Moose Wala"},
-       {q:"'Kesariya' is a hit song from which 2022 Bollywood film?",a:"Brahmāstra"}],
-    6:[{q:"Which rapper released 'Scorpion', featuring 'In My Feelings'?",a:"Drake"},
-       {q:"Who composed the Oscar-winning music for 'Slumdog Millionaire'?",a:"A.R. Rahman"}],
-    8:[{q:"Which band recorded 'Bohemian Rhapsody'?",a:"Queen"},
-       {q:"DIVINE & Naezy's Mumbai rap scene inspired which 2019 Bollywood film?",a:"Gully Boy"}],
+  {c:'🏅 Sports', modes:['general'], q:{
+    2:[{q:"How many runs does a batsman score for hitting the ball over the rope without bouncing?",a:"6 (a six)"},
+       {q:"How many players from one team are on a basketball court at a time?",a:"5"}],
+    4:[{q:"Which country has won the most Cricket World Cup (50-over) titles?",a:"Australia (5 times)"},
+       {q:"Who holds the record for the most Grand Slam singles titles in men's tennis?",a:"Novak Djokovic (24)"}],
+    6:[{q:"Which Indian cricketer has scored the most Test centuries?",a:"Sachin Tendulkar (51)"},
+       {q:"India won the ICC Men's T20 World Cup most recently in which year?",a:"2024"}],
+    8:[{q:"Roger Federer retired in 2022 with how many Grand Slam titles?",a:"20"},
+       {q:"Who won the Formula 1 World Championship in 2023?",a:"Max Verstappen"}],
   }},
-  {c:'🍻 Booze & Bar', q:{
-    2:[{q:"Which herb is essential in a classic mojito?",a:"Mint"},
-       {q:"Tonic water + which spirit makes a G&T?",a:"Gin"}],
-    4:[{q:"Tequila is made from which plant?",a:"Agave"},
-       {q:"What does 'IPA' stand for in beer?",a:"India Pale Ale"}],
-    6:[{q:"Which country is the origin of the rice drink 'sake'?",a:"Japan"},
-       {q:"A Negroni is gin, Campari and which fortified wine?",a:"Sweet vermouth"}],
-    8:[{q:"Whisky aged in a barrel gets its colour mostly from what?",a:"The (charred oak) cask / wood"},
-       {q:"Ordering a spirit 'neat' means served how?",a:"Straight — no ice, no mixer"}],
+  {c:'🌍 Geography', modes:['general'], q:{
+    2:[{q:"Which country has the largest population in the world as of 2024?",a:"India"},
+       {q:"What is the largest ocean on Earth?",a:"Pacific Ocean"}],
+    4:[{q:"What is the capital of Canada?",a:"Ottawa"},
+       {q:"What is generally considered the longest river in the world?",a:"The Nile"}],
+    6:[{q:"What is the smallest country in the world by area?",a:"Vatican City"},
+       {q:"Which country has the most time zones (12)?",a:"France"}],
+    8:[{q:"What is the deepest lake in the world?",a:"Lake Baikal (Russia)"},
+       {q:"Which two countries share the longest international land border?",a:"Canada and the USA"}],
   }},
 ];
 let jpTeams=[[],[]],jpBank=[0,0],jpTurn=0,jpCur=null,jpRemain=0,jpBoardData=[];
@@ -1209,12 +1261,20 @@ const JP_META=[{n:'Team A',e:'🔴',c:'#ff2e63'},{n:'Team B',e:'🔵',c:'#00e5ff
 const JP_VALUES=[2,4,6,8];
 function jpPick(arr){return arr[Math.floor(Math.random()*arr.length)];}
 function buildJpTeams(){const s=squad();jpTeams=[[],[]];s.forEach((p,i)=>jpTeams[i%2].push(p.name));}
-function buildJpBoard(){
-  jpBoardData=JEOPARDY.map(cat=>({
+function buildJpBoard(mode){
+  const cats=JEOPARDY_POOL.filter(c=>c.modes.includes(mode));
+  jpBoardData=cats.map(cat=>({
     c:cat.c,
     cells:JP_VALUES.map(v=>{const o=jpPick(cat.q[v]);return {v,q:o.q,a:o.a,used:false};})
   }));
   jpRemain=jpBoardData.length*JP_VALUES.length;
+}
+function showJpSetup(){
+  buildJpTeams();
+  jpBank=[0,0];jpTurn=0;jpCur=null;
+  document.getElementById('jpSetupView').classList.remove('hidden');
+  document.getElementById('jpGameView').classList.add('hidden');
+  document.getElementById('jpRestart').classList.add('hidden');
 }
 function renderJpScore(){
   const b=document.getElementById('jpScore');b.innerHTML='';
@@ -1244,9 +1304,11 @@ function renderJpBoard(){
     });
   }
 }
-function startJeopardy(){
-  buildJpTeams();buildJpBoard();
+function startJeopardy(mode){
+  buildJpTeams();buildJpBoard(mode);
   jpBank=[0,0];jpTurn=0;jpCur=null;
+  document.getElementById('jpSetupView').classList.add('hidden');
+  document.getElementById('jpGameView').classList.remove('hidden');
   document.getElementById('jpResults').classList.add('hidden');
   document.getElementById('jpResults').innerHTML='';
   document.getElementById('jpQView').classList.add('hidden');
