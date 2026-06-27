@@ -222,7 +222,7 @@
 <!-- ============ MOST LIKELY TO ============ -->
 <div id="mostlikely" class="screen">
   <div class="topbar">
-    <button class="ghostbtn" onclick="go('home')">← Hub</button>
+    <button class="ghostbtn" onclick="confirmExit()">← Hub</button>
     <div class="gtitle">🫵 Most Likely To</div>
     <button class="ghostbtn" onclick="toggleFullscreen()">⛶</button>
   </div>
@@ -240,7 +240,7 @@
 <!-- ============ KINGS CUP ============ -->
 <div id="kings" class="screen">
   <div class="topbar">
-    <button class="ghostbtn" onclick="go('home')">← Hub</button>
+    <button class="ghostbtn" onclick="confirmExit()">← Hub</button>
     <div class="gtitle">👑 Kings Cup</div>
     <button class="ghostbtn" onclick="toggleFullscreen()">⛶</button>
   </div>
@@ -258,7 +258,7 @@
 <!-- ============ PARANOIA ============ -->
 <div id="paranoia" class="screen">
   <div class="topbar">
-    <button class="ghostbtn" onclick="go('home')">← Hub</button>
+    <button class="ghostbtn" onclick="confirmExit()">← Hub</button>
     <div class="gtitle">😈 Paranoia</div>
     <button class="ghostbtn" onclick="toggleFullscreen()">⛶</button>
   </div>
@@ -279,7 +279,7 @@
 <!-- ============ BOMB PASS ============ -->
 <div id="bomb" class="screen">
   <div class="topbar">
-    <button class="ghostbtn" onclick="go('home')">← Hub</button>
+    <button class="ghostbtn" onclick="confirmExit()">← Hub</button>
     <div class="gtitle">💣 Bomb Pass</div>
     <div style="display:flex;gap:6px">
       <button class="ghostbtn" id="bombSndBtn" onclick="toggleBombSound()" title="sound on/off">🔊</button>
@@ -300,7 +300,7 @@
 <!-- ============ TRIVIA CLASH ============ -->
 <div id="trivia" class="screen">
   <div class="topbar">
-    <button class="ghostbtn" onclick="go('home')">← Hub</button>
+    <button class="ghostbtn" onclick="confirmExit()">← Hub</button>
     <div class="gtitle">🧠 Trivia Clash</div>
     <button class="ghostbtn" onclick="toggleFullscreen()">⛶</button>
   </div>
@@ -325,7 +325,7 @@
 <!-- ============ RIDE THE BUS ============ -->
 <div id="rtb" class="screen">
   <div class="topbar">
-    <button class="ghostbtn" onclick="go('home')">← Hub</button>
+    <button class="ghostbtn" onclick="confirmExit()">← Hub</button>
     <div class="gtitle">🚌 Ride the Bus</div>
     <button class="ghostbtn" onclick="toggleFullscreen()">⛶</button>
   </div>
@@ -339,7 +339,7 @@
 <!-- ============ FOOTY WATCH-PARTY ============ -->
 <div id="footy" class="screen">
   <div class="topbar">
-    <button class="ghostbtn" onclick="go('home')">← Hub</button>
+    <button class="ghostbtn" onclick="confirmExit()">← Hub</button>
     <div class="gtitle">📺 Footy Watch-Party</div>
     <button class="ghostbtn" onclick="toggleFullscreen()">⛶</button>
   </div>
@@ -353,7 +353,7 @@
 <!-- ============ SIP JEOPARDY ============ -->
 <div id="jeopardy" class="screen">
   <div class="topbar">
-    <button class="ghostbtn" onclick="go('home')">← Hub</button>
+    <button class="ghostbtn" onclick="confirmExit()">← Hub</button>
     <div class="gtitle">🎯 Sip Jeopardy</div>
     <button class="ghostbtn" onclick="toggleFullscreen()">⛶</button>
   </div>
@@ -483,6 +483,9 @@ function go(id){
   if(id==='footy')startFooty();
 }
 function openNamma(){saveSquad();location.href='nammanights.html';}
+function confirmExit(){
+  if(confirm('Leave this game and go back to the hub? Your current game will end.')) go('home');
+}
 function toggleFullscreen(){
   const el=document.documentElement;
   if(!document.fullscreenElement&&!document.webkitFullscreenElement){

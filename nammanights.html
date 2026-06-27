@@ -275,8 +275,8 @@
     <div class="logo">NAMMA NIGHTS</div>
     <div style="display:flex;gap:8px">
       <button class="ghostbtn" id="fsBtn" onclick="toggleFullscreen()" title="fill the screen / TV">⛶ Fullscreen</button>
-      <a class="ghostbtn" href="index.html" style="text-decoration:none" title="back to the game hub">⌂ Hub</a>
-      <button class="ghostbtn" onclick="if(confirm('Back to home screen? Current game will end.'))returnHome()">Home</button>
+      <a class="ghostbtn" href="index.html" style="text-decoration:none" title="back to the game hub" onclick="return confirm('Leave this game and go back to the hub? Your current game will end.')">⌂ Hub</a>
+      <button class="ghostbtn" onclick="if(confirm('Leave this game and go back to the home screen? Your current game will end.'))returnHome()">Home</button>
     </div>
   </div>
 
