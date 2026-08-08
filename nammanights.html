@@ -265,7 +265,7 @@
       <button data-i="unhinged" onclick="setIntensity('unhinged')">💀 Unhinged</button>
     </div>
     <button class="startbtn" onclick="startGame()">Start the Night 🍻</button>
-    <div class="hint">Add or remove players anytime (2–6). One shared screen — pass it on every turn.<br>Everyone must reach FINISH for the game to end. Drink responsibly.</div>
+    <div class="hint">Add or remove players anytime (2–8). One shared screen — pass it on every turn.<br>Everyone must reach FINISH for the game to end. Drink responsibly.</div>
   </div>
 </div>
 
@@ -353,8 +353,8 @@ const CUSTOM = {
 };
 /* ============== end custom block ============== */
 
-const PLAYER_COLORS = ['#ff2e63','#00e5ff','#ffd23f','#39ff14','#ff8c1a','#9d6bff'];
-const DEFAULT_NAMES = ['Player 1','Player 2','Player 3','Player 4','Player 5','Player 6'];
+const PLAYER_COLORS = ['#ff2e63','#00e5ff','#ffd23f','#39ff14','#ff8c1a','#9d6bff','#ff32e6','#1affd5'];
+const DEFAULT_NAMES = ['Player 1','Player 2','Player 3','Player 4','Player 5','Player 6','Player 7','Player 8'];
 const CHARACTERS = [
   {e:'🛺',n:'Auto Anna'},
   {e:'🍺',n:'Toit Tiger'},
@@ -1261,7 +1261,7 @@ function gridPos(i){const[r,c]=SPIRAL[i];return{row:r+1,col:c+1};}
 
 /* ---------------- STATE ---------------- */
 let count=6;
-let charSel=[0,1,2,3,4,5];
+let charSel=[0,1,2,3,4,5,6,7];
 let intensity='wild';
 let players=[];
 let curIdx=0;
@@ -1273,7 +1273,7 @@ let movingIdx=-1;
 function renderSetup(){
   const box=document.getElementById('nameRows');
   const vals=[];
-  for(let i=0;i<6;i++){const el=document.getElementById('nm'+i);vals[i]=el?el.value:'';}
+  for(let i=0;i<8;i++){const el=document.getElementById('nm'+i);vals[i]=el?el.value:'';}
   box.innerHTML='';
   for(let i=0;i<count;i++){
     const row=document.createElement('div'); row.className='prow';
@@ -1287,9 +1287,9 @@ function renderSetup(){
   }
   document.getElementById('countLabel').textContent=count;
   document.getElementById('minus').disabled=(count<=2);
-  document.getElementById('plus').disabled=(count>=6);
+  document.getElementById('plus').disabled=(count>=8);
 }
-function changeCount(d){count=Math.max(2,Math.min(6,count+d));renderSetup();}
+function changeCount(d){count=Math.max(2,Math.min(8,count+d));renderSetup();}
 function toggleFullscreen(){
   const el=document.documentElement;
   if(!document.fullscreenElement&&!document.webkitFullscreenElement){
@@ -1621,14 +1621,14 @@ function loadSquadFromHub(){
   try{
     const s=JSON.parse(localStorage.getItem('nnSquad')||'null');
     if(s&&Array.isArray(s.names)&&s.names.length){
-      count=Math.max(2,Math.min(6,s.names.length));
+      count=Math.max(2,Math.min(8,s.names.length));
       const used=[];
       if(Array.isArray(s.chars))for(let i=0;i<count;i++){
         let c=(typeof s.chars[i]==='number')?s.chars[i]%CHARACTERS.length:i;
         while(used.includes(c))c=(c+1)%CHARACTERS.length;
         charSel[i]=c;used.push(c);
       }
-      window.__squadNames=s.names.slice(0,6);
+      window.__squadNames=s.names.slice(0,8);
     }
   }catch(e){}
 }
