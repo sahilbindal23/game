@@ -113,6 +113,14 @@
   .wyropt.b{background:linear-gradient(90deg,#00e5ff,#9d6bff);color:#001018}
   .wyror{font-weight:900;letter-spacing:3px;color:var(--muted);font-size:13px}
 
+  /* ---------- WAR PICCOLO ---------- */
+  .pctap{min-height:58vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;
+    border-radius:24px;padding:26px 20px;border:2px solid var(--pcc,#ff2e63);cursor:pointer;
+    background:linear-gradient(180deg,color-mix(in srgb,var(--pcc,#ff2e63) 22%,#0a0a16),#0a0a16);
+    box-shadow:0 0 40px -6px var(--pcc,#ff2e63);user-select:none}
+  .pctext{font-size:clamp(22px,5.5vw,34px);font-weight:900;line-height:1.35;text-align:center}
+  .pchint{color:var(--muted);font-size:12px}
+
   /* ---------- BOMB PASS ---------- */
   .bomb{font-size:96px;margin:16px auto 6px;width:fit-content;line-height:1;filter:drop-shadow(0 0 16px var(--crazy))}
   .bomb.tick{animation:bombtick var(--spd,.5s) ease-in-out infinite, bombglow var(--spd,.5s) ease-in-out infinite}
@@ -262,6 +270,22 @@
       <div class="meta">Everyone picks A or B out loud on 3. The smaller group drinks 4 sips. Tie = everyone drinks 2. Defend your choice or add a sip.</div>
     </div>
     <button class="bigbtn" onclick="nextWyr()">Next dilemma ➜</button>
+  </div>
+</div>
+
+<!-- ============ WAR PICCOLO ============ -->
+<div id="piccolo" class="screen">
+  <div class="topbar">
+    <button class="ghostbtn" onclick="confirmExit()">← Hub</button>
+    <div class="gtitle">⚔️ War Piccolo</div>
+    <button class="ghostbtn" onclick="toggleFullscreen()">⛶</button>
+  </div>
+  <div class="stage">
+    <div class="pctap" id="pcTap" onclick="nextPiccolo()">
+      <span class="badge" id="pcBadge" style="color:#000">Challenge</span>
+      <div class="pctext" id="pcText">Tap to start.</div>
+      <div class="pchint"><span id="pcCount"></span> · tap anywhere for the next card</div>
+    </div>
   </div>
 </div>
 
@@ -503,6 +527,7 @@ function go(id){
   window.scrollTo(0,0);
   if(id==='mostlikely'){resetDrawer('ml');document.getElementById('mlText').textContent='Tap “Next prompt” to start.';}
   if(id==='wyr'){resetDrawer('wyr');document.getElementById('wyrA').textContent='Tap “Next dilemma” to start.';document.getElementById('wyrB').textContent='…';}
+  if(id==='piccolo')startPiccolo();
   if(id==='kings')resetKings();
   if(id==='paranoia'){resetDrawer('paranoia');paraIdx=0;startParanoia();}
   if(id==='bomb'){resetDrawer('bombcat');resetBomb();}
@@ -527,6 +552,7 @@ const GAMES=[
   {id:'namma',e:'🎲',n:'Namma Nights',d:'The full neon board game — dares, truths, power-ups, paranoia & CHAOS.',c:'var(--dare)',tag:'Board',fn:'openNamma()'},
   {id:'mostlikely',e:'🫵',n:'Most Likely To',d:'Point on 3. Most votes drinks. Pure friend-group carnage.',c:'var(--purple)',tag:'Group',fn:"go('mostlikely')"},
   {id:'wyr',e:'😈',n:'Would You Rather',d:'Diabolical dilemmas — dictators, exes, and questionable life choices. Smaller group drinks.',c:'var(--dare)',tag:'Group',fn:"go('wyr')"},
+  {id:'piccolo',e:'⚔️',n:'War Piccolo',d:'Tap-through party cards with your names in them: challenges, duels, viruses and delayed bombs. Unhinged mode.',c:'var(--crazy)',tag:'Party',fn:"go('piccolo')"},
   {id:'kings',e:'👑',n:"Kings Cup",d:'Our own chaotic ruleset — footy, dares, rhymes, accents & the King’s Cup.',c:'var(--blr)',tag:'Cards',fn:"go('kings')"},
   {id:'paranoia',e:'😈',n:'Paranoia',d:'Whisper a question. They answer out loud with a name — but the question stays a mystery.',c:'var(--special)',tag:'Secrets',fn:"go('paranoia')"},
   {id:'bomb',e:'💣',n:'Bomb Pass',d:'Ticking bomb + a category. Pass the phone answering — holder when it blows drinks.',c:'var(--crazy)',tag:'Fast',fn:"go('bomb')"},
@@ -2143,6 +2169,92 @@ function drawKing(){
   if(c.r==='K'&&kcKings>=4)rule='💀 FOURTH KING! Whoever drew it downs the entire King’s Cup. Game over — reset for a new round.';
   document.getElementById('kcRule').innerHTML='<b>'+info.n+'</b><br>'+rule;
   if(!kcDeck.length){document.getElementById('kcBtn').textContent='Deck empty — reshuffle 🔁';}
+}
+
+/* =================== WAR PICCOLO =================== */
+/* t: n=normal, d=duo, e=everyone/vote, v=virus (rule lasts n cards then end card), l=later (fires n cards later) */
+const PICCOLO=[
+  {t:'n',a:"{p}, send 'we need to talk' to your last Hinge match. Screenshot it or finish your drink."},
+  {t:'n',a:"{p}, name every person you've hooked up with this year. Miss one = 3 sips."},
+  {t:'n',a:"{p}, show the group your last 5 Instagram DMs. Refuse = finish your drink."},
+  {t:'n',a:"{p}, rate everyone's rizz out of 10 out loud. Nobody gets a 10. Whoever you scored lowest takes 3 sips."},
+  {t:'n',a:"{p}, confess your most unhinged situationship moment. Boring = 4 sips."},
+  {t:'n',a:"{p}, let the group pick one contact. You voice-note them 'I miss you'. Refuse = 5 sips."},
+  {t:'n',a:"{p}, give a 20 second roast of yourself. Soft = drink."},
+  {t:'n',a:"{p}, reveal your screen time. Lie and the group checks it."},
+  {t:'n',a:"{p}, who here would you take on a one-way trip to a desert island? Everyone else drinks 1."},
+  {t:'n',a:"{p}, ghost-text your ex 'hey'. Group watches. Refuse = finish your drink."},
+  {t:'n',a:"{p}, say one thing you secretly dislike about each person here. Skip someone = 4 sips."},
+  {t:'n',a:"{p}, hand out 6 sips however you want. You can't give all to one person."},
+  {t:'n',a:"{p}, do your best impression of {o} sliding into a DM. Group judges, loser drinks."},
+  {t:'n',a:"{p}, down your drink. No reason. War has no reason."},
+  {t:'n',a:"{p}, show the weirdest thing in your camera roll. Refuse = 5 sips."},
+  {t:'n',a:"{p}, who in this room would you hook up with if forced? Dodge = finish your drink."},
+  {t:'n',a:"{p}, tell the worst lie you've told a partner. Weak lie = 3 sips."},
+  {t:'n',a:"{p}, let {o} post any story from your phone. Refuse = 5 sips."},
+  {t:'n',a:"{p}, say your body count in front of everyone. Lie = 5 sips (group is the lie detector)."},
+  {t:'n',a:"{p}, do 15 pushups or take 6 sips. Choose."},
+  {t:'d',a:"{p} and {o}: 20 second staring contest. First to laugh finishes their drink."},
+  {t:'d',a:"{p} and {o}: swap phones for 30 seconds. Read each other's last texts out loud or both drink 5."},
+  {t:'d',a:"{p} and {o}: the group votes who'd cheat first. They drink 4."},
+  {t:'d',a:"{p} and {o}: whisper a secret to each other. If the group guesses it, you both drink."},
+  {t:'d',a:"{p} and {o}: rock-paper-scissors. Loser tells their worst date story."},
+  {t:'d',a:"{p} and {o}: thumb war. Loser drinks 5, winner picks a dare."},
+  {t:'d',a:"{p} and {o}: say 3 honest things you dislike about each other. Chicken out = both drink 4."},
+  {t:'d',a:"{p} and {o}: who has the higher body count? Loser points at someone who drinks double."},
+  {t:'e',a:"Everyone: point at who'd cheat first. Most votes drinks 5."},
+  {t:'e',a:"Everyone: on 3 point at the biggest liar. Most votes drinks 4."},
+  {t:'e',a:"Everyone who's ghosted someone drinks 3. Everyone who's been ghosted drinks 3."},
+  {t:'e',a:"Everyone who's sent a regretful 2am text drinks. Last to admit it drinks double."},
+  {t:'e',a:"Everyone: on 3 point at who's most likely to end up in jail. Winner drinks 5."},
+  {t:'e',a:"Everyone who's single drinks. Everyone who isn't, drinks to the one that got away."},
+  {t:'e',a:"Everyone shows their last Google search. Most embarrassing drinks 4."},
+  {t:'e',a:"Everyone: waterfall. {p} starts and stops first. No stopping before them."},
+  {t:'e',a:"Everyone who has hooked up with someone from this group's circle drinks 3."},
+  {t:'e',a:"Everyone: vote the biggest simp. They drink 5 and text their crush 'hi'."},
+  {t:'v',n:6,a:"VIRUS: {p} can no longer say anyone's name. Slip = 2 sips. Lasts 6 cards.",b:"The name virus on {p} is over. They breathe again."},
+  {t:'v',n:6,a:"VIRUS: everyone must end sentences with 'bro'. Slip = 1 sip. Lasts 6 cards.",b:"The 'bro' virus is over. Free speech is back."},
+  {t:'v',n:7,a:"VIRUS: {p} must speak in third person. Slip = 2 sips. Lasts 7 cards.",b:"{p} may use 'I' again."},
+  {t:'v',n:6,a:"VIRUS: nobody can say 'drink' or 'sip'. Slip = 2 sips. Lasts 6 cards.",b:"The 'drink' virus is gone. Say it with love."},
+  {t:'v',n:5,a:"VIRUS: {p} must call {o} 'daddy'. Slip = 3 sips. Lasts 5 cards.",b:"The dark title ends. {p} is free."},
+  {t:'v',n:6,a:"VIRUS: no phones. Anyone caught = 3 sips. Lasts 6 cards.",b:"Phones back. The ban is over."},
+  {t:'v',n:7,a:"VIRUS: every time {p} laughs they drink 1. Lasts 7 cards.",b:"{p} may laugh freely again."},
+  {t:'l',n:4,a:"{p}, in 4 cards you will confess your biggest regret. Start thinking.",b:"{p}, time's up. Confess your biggest regret now or finish your drink."},
+  {t:'l',n:5,a:"{p}, in 5 cards you must text your ex 'hey'. Dread it.",b:"{p}, text your ex 'hey' right now. Refuse = finish your drink."},
+  {t:'l',n:4,a:"{p} and {o}, in 4 cards you two will argue about who's more of a player.",b:"{p} and {o}: argue now. 30 seconds. The group picks the loser who drinks 5."},
+  {t:'l',n:5,a:"{p}, in 5 cards you'll rate every person's looks out of 10 out loud.",b:"{p}, rate everyone now. Out loud. No fake 10s."},
+  {t:'l',n:4,a:"{p}, in 4 cards you will take a shot in honour of your worst decision.",b:"{p}, shot time. Name your worst decision, then take it."},
+  {t:'l',n:6,a:"{p}, in 6 cards you owe the group an embarrassing story.",b:"{p}, story time. Make it good or drink 5."},
+];
+let pcQueue=[],pcPending=[],pcIdx=0,pcPlayers=[];
+function pcPick(excl){const pool=pcPlayers.filter(n=>!excl.includes(n));return pool.length?pool[Math.floor(Math.random()*pool.length)]:pcPlayers[0];}
+function pcFill(card){
+  const p=pcPick([]),o=pcPick([p]);
+  const f=s=>s.replace(/\{p\}/g,p).replace(/\{o\}/g,o);
+  return {t:card.t,text:f(card.a),endText:card.b?f(card.b):null,n:card.n||0};
+}
+function startPiccolo(){
+  pcPlayers=squad().map(p=>p.name);pcIdx=0;pcPending=[];
+  pcQueue=PICCOLO.slice().sort(()=>Math.random()-.5);
+  nextPiccolo(true);
+}
+function nextPiccolo(first){
+  pcIdx++;
+  let card;
+  const due=pcPending.findIndex(x=>x.at<=pcIdx);
+  if(due>=0){const x=pcPending.splice(due,1)[0];card={t:'end',text:x.text,n:0};}
+  else{
+    if(!pcQueue.length)pcQueue=PICCOLO.slice().sort(()=>Math.random()-.5);
+    card=pcFill(pcQueue.pop());
+    if(card.endText)pcPending.push({at:pcIdx+card.n,text:card.endText});
+  }
+  const lab={n:'Challenge',d:'Duel',e:'Everyone',v:'☣ Virus',l:'⏳ Later',end:'⏰ Time\'s up'}[card.t];
+  const col={n:'#ff2e63',d:'#9d6bff',e:'#00e5ff',v:'#39ff14',l:'#ff8c1a',end:'#ffd23f'}[card.t];
+  document.getElementById('pcBadge').textContent=lab;
+  document.getElementById('pcBadge').style.background=col;
+  document.getElementById('pcText').textContent=card.text;
+  document.getElementById('pcCount').textContent='Card '+pcIdx;
+  document.getElementById('pcTap').style.setProperty('--pcc',col);
 }
 
 /* =================== BOOT =================== */
