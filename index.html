@@ -106,6 +106,13 @@
   .paraq{font-size:20px;font-weight:800;line-height:1.4;background:#1a0a2e;border:1px solid var(--special);
     border-radius:14px;padding:16px;margin:14px 0;color:#fff;box-shadow:inset 0 0 22px #ff32e644}
 
+  /* ---------- WOULD YOU RATHER ---------- */
+  .wyrbox{display:flex;flex-direction:column;gap:10px;margin:14px 0}
+  .wyropt{border-radius:16px;padding:18px 14px;font-size:19px;font-weight:800;line-height:1.35;text-align:center}
+  .wyropt.a{background:linear-gradient(90deg,#ff2e63,#ff8c1a);color:#fff}
+  .wyropt.b{background:linear-gradient(90deg,#00e5ff,#9d6bff);color:#001018}
+  .wyror{font-weight:900;letter-spacing:3px;color:var(--muted);font-size:13px}
+
   /* ---------- BOMB PASS ---------- */
   .bomb{font-size:96px;margin:16px auto 6px;width:fit-content;line-height:1;filter:drop-shadow(0 0 16px var(--crazy))}
   .bomb.tick{animation:bombtick var(--spd,.5s) ease-in-out infinite, bombglow var(--spd,.5s) ease-in-out infinite}
@@ -234,6 +241,27 @@
       <div class="meta">On the count of 3, everyone points. Most votes drinks (2 sips). Tie = both drink.</div>
     </div>
     <button class="bigbtn" onclick="nextMostLikely()">Next prompt ➜</button>
+  </div>
+</div>
+
+<!-- ============ WOULD YOU RATHER ============ -->
+<div id="wyr" class="screen">
+  <div class="topbar">
+    <button class="ghostbtn" onclick="confirmExit()">← Hub</button>
+    <div class="gtitle">😈 Would You Rather</div>
+    <button class="ghostbtn" onclick="toggleFullscreen()">⛶</button>
+  </div>
+  <div class="stage">
+    <div class="panel" style="--pc:var(--dare)">
+      <div style="text-align:center"><span class="badge" style="background:var(--dare);color:#fff">Diabolical</span></div>
+      <div class="wyrbox">
+        <div class="wyropt a" id="wyrA">Tap below to start.</div>
+        <div class="wyror">— OR —</div>
+        <div class="wyropt b" id="wyrB">…</div>
+      </div>
+      <div class="meta">Everyone picks A or B out loud on 3. The smaller group drinks 4 sips. Tie = everyone drinks 2. Defend your choice or add a sip.</div>
+    </div>
+    <button class="bigbtn" onclick="nextWyr()">Next dilemma ➜</button>
   </div>
 </div>
 
@@ -474,6 +502,7 @@ function go(id){
   document.getElementById(id).classList.add('on');
   window.scrollTo(0,0);
   if(id==='mostlikely'){resetDrawer('ml');document.getElementById('mlText').textContent='Tap “Next prompt” to start.';}
+  if(id==='wyr'){resetDrawer('wyr');document.getElementById('wyrA').textContent='Tap “Next dilemma” to start.';document.getElementById('wyrB').textContent='…';}
   if(id==='kings')resetKings();
   if(id==='paranoia'){resetDrawer('paranoia');paraIdx=0;startParanoia();}
   if(id==='bomb'){resetDrawer('bombcat');resetBomb();}
@@ -497,6 +526,7 @@ function toggleFullscreen(){
 const GAMES=[
   {id:'namma',e:'🎲',n:'Namma Nights',d:'The full neon board game — dares, truths, power-ups, paranoia & CHAOS.',c:'var(--dare)',tag:'Board',fn:'openNamma()'},
   {id:'mostlikely',e:'🫵',n:'Most Likely To',d:'Point on 3. Most votes drinks. Pure friend-group carnage.',c:'var(--purple)',tag:'Group',fn:"go('mostlikely')"},
+  {id:'wyr',e:'😈',n:'Would You Rather',d:'Diabolical dilemmas — dictators, exes, and questionable life choices. Smaller group drinks.',c:'var(--dare)',tag:'Group',fn:"go('wyr')"},
   {id:'kings',e:'👑',n:"Kings Cup",d:'Our own chaotic ruleset — footy, dares, rhymes, accents & the King’s Cup.',c:'var(--blr)',tag:'Cards',fn:"go('kings')"},
   {id:'paranoia',e:'😈',n:'Paranoia',d:'Whisper a question. They answer out loud with a name — but the question stays a mystery.',c:'var(--special)',tag:'Secrets',fn:"go('paranoia')"},
   {id:'bomb',e:'💣',n:'Bomb Pass',d:'Ticking bomb + a category. Pass the phone answering — holder when it blows drinks.',c:'var(--crazy)',tag:'Fast',fn:"go('bomb')"},
@@ -625,6 +655,90 @@ const DECKS={
     "…to lose a bet and actually pay up?",
     "…to plan the next trip and bail on it?",
     "…to be the last one standing tonight?",
+  ],
+  wyr:[
+    ["Share a hot tub with Hitler for an hour, both in speedos","Get a back massage from Stalin who hums Soviet lullabies"],
+    ["Be stuck in a lift for 6 hours with Genghis Khan","Be stuck in a lift for 6 hours with your ex and their new partner"],
+    ["Have Napoleon as your short, furious boss","Have Mussolini as your gym trainer who shouts 'ONE MORE REP, COMRADE'"],
+    ["Go on a pub crawl with Kim Jong-un","Go on a road trip with Putin where he picks all the playlists"],
+    ["Have your entire search history read out at your wedding","Have your camera roll played on a loop at your funeral"],
+    ["Have a group chat with every ex you've ever had","Have your mum added to your close friends story"],
+    ["Fight 1 horse-sized duck","Fight 100 duck-sized horses"],
+    ["Always smell like a wet auto-rickshaw seat","Always sound like a dial-up modem when you laugh"],
+    ["Be unable to ever say 'bro' again","Be unable to ever say 'maccha' again"],
+    ["Lose the ability to taste biryani","Lose the ability to taste beer"],
+    ["Eat a whole raw onion like an apple","Drink a glass of pickle juice mixed with filter coffee"],
+    ["Get your browser history leaked to the whole squad","Get your bank statement leaked to the whole squad"],
+    ["Have Cleopatra choose you as a husband but you must be her food taster","Be Julius Caesar's best friend for exactly 15 March"],
+    ["Be Henry VIII's sixth wife","Be one of Henry VIII's first five wives"],
+    ["Have Ivan the Terrible as your flatmate","Have Vlad the Impaler as your landlord"],
+    ["Be forced to give a eulogy for Hitler","Be forced to give a best-man speech for Stalin"],
+    ["Wrestle a bear for 30 seconds","Fistfight Mike Tyson for 10 seconds"],
+    ["Have a Bangalore auto driver follow you around charging meter-and-a-half forever","Be permanently stuck at the Silk Board junction (at 6pm)"],
+    ["Have every text you send auto-corrected to your mother's name","Have every call you make go to your boss by accident"],
+    ["Date your best friend's ex","Have your best friend date your ex"],
+    ["Fart loudly every time you tell a lie","Burp the alphabet every time you get a compliment"],
+    ["Go through life as an NPC in someone else's GTA","Be the final boss in a game nobody wants to play"],
+    ["Be famous for a terrible meme","Be completely unknown but incredibly rich"],
+    ["Be Napoleon at Waterloo","Be Hitler in the bunker with 5 minutes of Wi-Fi left"],
+    ["Give up the internet for a year","Give up your phone for a month and your friends for a week"],
+    ["Be a dictator of a tiny, fully dysfunctional country","Be the unpaid intern of a dictator of a huge country"],
+    ["Have a rumour started about you that is completely true","Have a rumour started about you that is completely false but unbelievably good"],
+    ["Eat nothing but cold dal for a year","Eat nothing but hot chilli oil for a week"],
+    ["Be in the same WhatsApp group as your boss, your ex and your dad","Be locked in a house for a week with the same three people"],
+    ["Be able to hear what everyone thinks about you","Be able to read everyone's DMs for 24 hours"],
+    ["Get a tattoo of your ex's name on your forehead","Get a tattoo of your boss's face on your butt"],
+    ["Let Mussolini cut your hair","Let Pol Pot cook you dinner"],
+    ["Be hiccuping for the rest of your life","Be sneezing every 5 minutes for a year"],
+    ["Win a gold medal in the Olympics but be known for doping","Never compete but be widely loved"],
+    ["Fight 10 monkeys at Cubbon Park for a sandwich","Fight 1 monkey at Cubbon Park for a girlfriend"],
+    ["Hold hands with Mahatma Gandhi in a sauna","Dance with Churchill in a nightclub"],
+    ["Sing the Indian national anthem in a pitch-black lift","Recite a love poem to a stranger in a metro"],
+    ["Go bald immediately","Have permanent leg hair down to your ankles, from your head"],
+    ["Sleep in a box in the middle of a lion enclosure","Spend a night in a graveyard with a bad torch"],
+    ["Have your internet search history be the title of your autobiography","Have your final text messages be your gravestone"],
+    ["Be forced to speak in only rhyming couplets at work","Be forced to speak in an Indian-Scottish accent for a year"],
+    ["Take a bite out of a live goldfish","Take a bite out of a rotten egg"],
+    ["Have a guaranteed dream job but lose all your friends","Keep all your friends but have a mediocre job forever"],
+    ["Kiss Ronaldo's feet","Let Messi sniff your pits"],
+    ["Be sentenced by Judge Judy to community service with Hitler's ghost","Be forced to attend a seminar by Elon Musk's ghost"],
+    ["Be Winston Churchill's tea boy in 1940","Be Stalin's translator"],
+    ["Spend one night with Cleopatra but you end up mummified","Spend one night with Marie Antoinette but you get guillotined at dawn"],
+    ["Be stuck inside a Pokémon Go game forever","Be stuck on hold with customer care forever"],
+    ["Have every elevator you ever enter break down","Have every Uber you ever book arrive with a driver who wants to chat about crypto"],
+    ["Have a very public breakdown on Instagram live","Have a very private breakdown on your date's lap"],
+    ["Eat a spoonful of cinnamon","Eat a cup of dry cornflakes with no milk"],
+    ["Marry someone who is rich but unbearably annoying","Marry someone who is poor but the most fun person alive"],
+    ["Be Che Guevara's mate in Bolivia","Be Fidel Castro's cigar-lighter for a lifetime"],
+    ["Wear a clown costume to your next job interview","Show up in a full suit of armour"],
+    ["Be forced to listen to Nickelback forever","Be forced to listen to only your own voice on a loop"],
+    ["Have a one-off fight with a kangaroo","Have a one-off fight with a swan"],
+    ["Be locked in a sauna with Genghis Khan","Be locked in an ice bath with Napoleon"],
+    ["Get a hug from a person you hate","Give a hug to a person who hates you"],
+    ["Be gassed on your own farts in a lift","Be stuck in a lift while someone loudly eats a boiled egg"],
+    ["Run into your crush at 3am while drunk and puking","Run into your boss at 3am while drunk and singing"],
+    ["Tell the person next to you your biggest secret","Hear their biggest secret about you"],
+    ["Have mosquitoes in your room every night forever","Have a gecko fall on your face every day forever"],
+    ["Go into hiding with Che Guevara","Be exiled to St Helena with Napoleon"],
+    ["Sit in a sauna with Putin","Sit in a snowbank with Trump"],
+    ["Have your teacher read your diary aloud","Have your first crush read your Notes app aloud"],
+    ["Wash dishes at a wedding of 1000 people","Serve food at a wedding of 1000 people while everyone judges you"],
+    ["Have 1000 flies follow you forever","Have a seagull steal your food forever"],
+    ["Have a bad haircut for 5 years","Have a bad tattoo for life"],
+    ["Be locked in a room with someone who sings 'Despacito' 8 hours a day","Be locked in a room where only Baby Shark is played"],
+    ["Be a nobody with a good life","Be a legendary figure who dies tragically at 35"],
+    ["Be Nero playing the fiddle while Rome burns","Be Caligula's horse who becomes a consul"],
+    ["Share a bed with Dracula","Share a bath with Frankenstein"],
+    ["Break up with someone by singing","Break up with someone by sending a meme"],
+    ["Be forced to take a lie-detector test about your love life in front of your parents","Be forced to take one about your work life in front of your boss"],
+    ["Eat a plate of grasshoppers","Eat a plate of someone else's leftovers"],
+    ["Be a time traveller who can only visit the 1940s","Be a time traveller who can only visit the Middle Ages"],
+    ["Have your whole life become a Netflix documentary narrated by Gordon Ramsay","Have your life become a musical narrated by Rahul Gandhi"],
+    ["Be trapped at a never-ending Zoom call with the 10 worst dictators in history","Be trapped at a never-ending family function with 10 aunties"],
+    ["Spend a month on a deserted island with your boss","Spend a month on a deserted island with your ex"],
+    ["Get stuck in a never-ending Bumble match with Genghis Khan","Get matched on Hinge with Joseph Stalin and have to go on a date"],
+    ["Go back to 2010 with no phone","Go to 2040 with no friends"],
+    ["Be allowed to remember everything from your drunk nights","Forget everything from your drunk nights but have it all on video"],
   ],
   paranoia:[
     "Who in this room would you actually hook up with if you HAD to pick one?",
@@ -996,6 +1110,7 @@ function fill(s){
 }
 
 /* =================== MOST LIKELY TO =================== */
+function nextWyr(){const p=draw('wyr');document.getElementById('wyrA').textContent='A: '+p[0];document.getElementById('wyrB').textContent='B: '+p[1];}
 function nextMostLikely(){
   document.getElementById('mlText').textContent='Who’s most likely '+draw('ml');
 }
